@@ -1,0 +1,2 @@
+# Dependencies are managed in pyproject.toml with uv.
+# Install and run with: uv sync; uv run uvicorn server:app --reload
