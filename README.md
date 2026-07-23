@@ -1,131 +1,425 @@
 # FinanceOS
 
-FinanceOS is a demo-ready enterprise expense reimbursement platform built with FastAPI and React. The app models an AI-assisted finance workflow where employees submit expenses, managers review claims, finance teams approve payments, and administrators manage policy rules.
+> AI-Powered Enterprise Expense Reimbursement Platform
 
-This repository is currently structured as a local development prototype with a working backend/frontend flow, demo role accounts, and an in-memory data layer for quick testing.
+FinanceOS is a modern enterprise expense reimbursement platform designed to automate the entire reimbursement lifecycle using Artificial Intelligence, OCR, policy validation, and multi-stage approval workflows.
 
-## Highlights
+The platform enables employees to submit expenses, managers to review AI-assisted recommendations, finance teams to verify and process reimbursements, and administrators to configure company reimbursement policies, all through a clean enterprise-grade interface.
 
-- AI-style expense intake workflow with upload, OCR-style parsing, and risk scoring
-- Role-based approval pipeline across Employee, Manager, Finance, and Admin
-- Dashboard and analytics views for operational visibility
-- FastAPI backend with JWT authentication and policy enforcement
-- React frontend for a single-page reimbursement experience
+---
 
-## Current Project Status
+## Features
 
-The application is functional for local testing, but it is not yet production-hardened. Current implementation notes:
+### Authentication & Authorization
 
-- Backend APIs are implemented and working in local development mode
-- Demo authentication is available for test roles
-- Expense data is currently stored in memory rather than a production database
-- OCR is mocked for demo behavior rather than connected to a real document extraction engine
+- JWT Authentication
+- Role-Based Access Control (RBAC)
+- Employee
+- Manager
+- Finance Officer
+- Administrator
 
-## Architecture
+### Expense Management
 
-```mermaid
-flowchart LR
-    A[React Frontend] --> B[FastAPI API]
-    B --> C[Auth + RBAC]
-    B --> D[Expense Services]
-    B --> E[Policy + Risk Engine]
-    D --> F[In-memory Data Layer]
-```
+- Create Draft Expenses
+- Submit Expenses
+- Edit Drafts
+- Delete Drafts
+- Expense History
+- Receipt Upload
 
-## Tech Stack
+### AI-Powered Workflow
 
-### Backend
-- Python 3.11+
-- FastAPI
-- PyJWT
-- Pydantic
-- Python-dotenv
-- pytest
+- OCR Receipt Processing
+- AI Expense Analysis
+- Policy Validation
+- Duplicate Detection
+- Risk Assessment
+- AI Recommendation Engine
 
-### Frontend
-- React 18
+### Approval Workflow
+
+Employee
+
+↓
+
+Manager Review
+
+↓
+
+Finance Verification
+
+↓
+
+Payment Processing
+
+↓
+
+Audit Logging
+
+### Analytics
+
+- Expense Trends
+- Category Breakdown
+- Monthly Reports
+- Approval Statistics
+- Department Spending
+- Dashboard KPIs
+
+### Administration
+
+- Policy Management
+- User Management
+- Audit Logs
+- Notification Center
+
+---
+
+# Technology Stack
+
+## Frontend
+
+- React
 - React Router
-- Vanilla CSS styling
-- API-driven UI state
+- Tailwind CSS
+- Recharts
+- Axios
 
-## Repository Structure
+## Backend
 
-- `backend/` — FastAPI application, auth, expense APIs, services, and tests
-- `frontend/` — React application and UI assets
-- `docs/` — project requirements, architecture, testing, deployment documentation
-- `memory/` — demo credential reference notes
+- FastAPI
+- Python
+- Motor (MongoDB Async Driver)
+- JWT Authentication
+- Pydantic
 
-## Getting Started
+## Database
 
-### Prerequisites
+- MongoDB Community Edition
 
-- Python 3.11+
-- Node.js 18+
-- npm
-- Optional: `uv` for backend dependency management
+## AI
 
-### 1. Backend setup
+- OCR Pipeline
+- Rule Engine
+- Finance AI Review
+- Explainable AI (Planned)
+- RAG Policy Retrieval (Planned)
 
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn server:app --reload --port 8000
+---
+
+# System Architecture
+
+```
+                +----------------------+
+                |      React UI        |
+                +----------+-----------+
+                           |
+                           |
+                    REST API (FastAPI)
+                           |
+      +---------+----------+----------+
+      |         |                     |
+ Authentication Expenses        Analytics
+      |         |                     |
+      +---------+----------+----------+
+                           |
+                      MongoDB Database
+                           |
+                   AI Processing Layer
+         OCR → Rule Engine → AI Review
 ```
 
-If you are using `uv`, you can also do:
+---
+
+# Expense Workflow
+
+```
+Employee
+
+↓
+
+Upload Receipt
+
+↓
+
+OCR Extraction
+
+↓
+
+AI Policy Validation
+
+↓
+
+Manager Approval
+
+↓
+
+Finance Verification
+
+↓
+
+Payment
+
+↓
+
+Audit Log
+```
+
+---
+
+# Project Structure
+
+```
+FinanceOS/
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
+├── backend/
+│   ├── repositories/
+│   ├── services/
+│   ├── utils/
+│   ├── tests/
+│   ├── database.py
+│   ├── server.py
+│   └── pyproject.toml
+│
+├── docs/
+│
+└── README.md
+```
+
+---
+
+# Getting Started
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/Pratham-Arun/FinanceOS.git
+
+cd FinanceOS
+```
+
+---
+
+# Backend Setup
 
 ```bash
 cd backend
+
 uv sync
-uv run uvicorn server:app --reload --port 8000
+
+uv run uvicorn server:app --reload
 ```
 
-The API docs are available at:
+Backend will run at
 
-- http://localhost:8000/docs
+```
+http://127.0.0.1:8000
+```
 
-### 2. Frontend setup
+Swagger Documentation
+
+```
+http://127.0.0.1:8000/docs
+```
+
+---
+
+# Frontend Setup
 
 ```bash
 cd frontend
+
 npm install
+
 npm start
 ```
 
-The frontend will typically run at:
+Frontend will run at
 
-- http://localhost:3000
-
-## Demo Credentials
-
-The app ships with built-in demo accounts for quick local testing:
-
-| Role | Email | Password |
-|---|---|---|
-| Employee | `employee@demo.com` | `demo1234` |
-| Manager | `manager@demo.com` | `demo1234` |
-| Finance | `finance@demo.com` | `demo1234` |
-| Admin | `admin@demo.com` | `admin123` |
-
-## Running Tests
-
-```bash
-cd backend
-pytest
+```
+http://localhost:3000
 ```
 
-## Environment & Secrets
+---
 
-Do not commit secrets or local environment files to Git. The repository already ignores `.env` files at the root and under `backend/`.
+# Environment Variables
 
-Use `.env.example` as the template for any local configuration you need, and keep real credentials out of version control.
+Create a `.env` file inside the backend directory.
 
-## Notes
+```env
+MONGO_URI=mongodb://127.0.0.1:27017/expense_reimbursement
 
-This project is intended as a demonstrator and local development workspace. It is a strong starting point for a full expense automation product, but production deployment, persistent database integration, and real OCR/LLM processing still need to be wired in.
+MONGO_DB_NAME=expense_reimbursement
 
-## License
+JWT_SECRET=your-secret-key
 
-This repository is shared for demo and development purposes. Review the project docs and add an explicit license before distributing it beyond internal or educational use.
+OPENAI_API_KEY=your-api-key
+```
+
+Never commit your `.env` file.
+
+---
+
+# Screenshots
+
+## Login
+
+> Add Screenshot
+
+---
+
+## Dashboard
+
+> Add Screenshot
+
+---
+
+## Expense Submission
+
+> Add Screenshot
+
+---
+
+## Analytics
+
+> Add Screenshot
+
+---
+
+## AI Review
+
+> Add Screenshot
+
+---
+
+# API Overview
+
+| Method | Endpoint | Description |
+|---------|----------|-------------|
+| POST | /api/auth/login | Login |
+| POST | /api/auth/register | Register |
+| GET | /api/expenses | Get Expenses |
+| POST | /api/expenses | Create Expense |
+| PUT | /api/expenses/{id} | Update Expense |
+| DELETE | /api/expenses/{id} | Delete Expense |
+| POST | /api/approvals/{id} | Approve Expense |
+| GET | /api/notifications | Notifications |
+| GET | /api/analytics | Analytics |
+
+---
+
+# Current Features
+
+- JWT Authentication
+- MongoDB Integration
+- Repository Pattern
+- Service Layer
+- Expense CRUD
+- Approval Workflow
+- Notifications
+- Analytics Dashboard
+- Structured Logging
+- Pagination
+- MongoDB Indexes
+- Audit Logging
+- Comprehensive Test Suite
+
+---
+
+# Roadmap
+
+## Phase 1
+
+- Authentication
+- Expense Workflow
+- Analytics
+
+Completed
+
+## Phase 2
+
+- OCR Receipt Processing
+- Rule Engine
+- AI Expense Review
+
+In Progress
+
+## Phase 3
+
+- RAG Policy Engine
+- Explainable AI
+- Smart Recommendations
+- AI Chat Assistant
+
+Planned
+
+## Phase 4
+
+- Docker
+- CI/CD
+- Kubernetes Deployment
+- Multi-Tenant Architecture
+
+Planned
+
+---
+
+# Testing
+
+Run all backend tests
+
+```bash
+uv run pytest -v
+```
+
+---
+
+# Future Enhancements
+
+- Invoice Processing
+- Vendor Management
+- Budget Planning
+- Procurement
+- Compliance Dashboard
+- Mobile Application
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+Please open an issue before submitting major changes.
+
+---
+
+# License
+
+This project is licensed under the MIT License.
+
+---
+
+# Author
+
+**Pratham Arun**
+
+B.Tech Computer Science Engineering
+
+SRM Institute of Science and Technology
+
+GitHub
+
+https://github.com/Pratham-Arun
+
+LinkedIn
+
+(Add your LinkedIn profile)
+
+---
+
+## If you found this project interesting, consider giving it a ⭐ on GitHub!
