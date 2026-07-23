@@ -265,38 +265,6 @@ Never commit your `.env` file.
 
 ---
 
-# Screenshots
-
-## Login
-
-> Add Screenshot
-
----
-
-## Dashboard
-
-> Add Screenshot
-
----
-
-## Expense Submission
-
-> Add Screenshot
-
----
-
-## Analytics
-
-> Add Screenshot
-
----
-
-## AI Review
-
-> Add Screenshot
-
----
-
 # API Overview
 
 | Method | Endpoint | Description |
@@ -358,15 +326,6 @@ In Progress
 
 Planned
 
-## Phase 4
-
-- Docker
-- CI/CD
-- Kubernetes Deployment
-- Multi-Tenant Architecture
-
-Planned
-
 ---
 
 # Testing
@@ -415,11 +374,3 @@ SRM Institute of Science and Technology
 GitHub
 
 https://github.com/Pratham-Arun
-
-LinkedIn
-
-(Add your LinkedIn profile)
-
----
-
-## If you found this project interesting, consider giving it a ⭐ on GitHub!
