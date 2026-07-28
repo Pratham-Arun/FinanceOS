@@ -1,101 +1,148 @@
 # 05. AI Module Documentation
 
-This document describes the AI systems integrated within the application: the Optical Character Recognition (OCR) scanner, the Rule Engine, the RAG (Retrieval-Augmented Generation) policy helper, and the Finance AI Agent.
+This document describes the end-to-end AI platform architecture for FinanceOS, spanning Phase 1 through Phase 10: Optical Character Recognition (OCR), Rule Engine, Duplicate Detection, Finance AI Agent, RAG Policy Integration, AI Chat Assistant, Dashboard Intelligence, Anomaly Detection, Smart Notifications, and AI Audit Logging.
 
 ---
 
-## 1. OCR Document Pipeline
-
-The OCR pipeline converts raw images or PDF uploads into normalized text data, structured for LLM extraction.
+## 1. Overall AI Architecture & Workflow
 
 ```
-┌──────────────┐      ┌─────────────┐      ┌──────────────┐      ┌─────────────┐
-│ Uploaded File│ ───> │ Preprocess  │ ───> │ OCR Engine   │ ───> │ Raw Text    │
-│ (Image/PDF)  │      │ (Grayscale) │      │ (Tesseract)  │      │ Block Output│
-└──────────────┘      └─────────────┘      └──────────────┘      └─────────────┘
+Employee Uploads Receipt (PNG, JPG, JPEG, PDF up to 20MB)
+          │
+          ▼
+OCR Engine (Extracts fields + confidence scores per field)
+          │
+          ▼
+Rule Engine (Policy limits, category checks, taxi/alcohol rules)
+          │
+          ▼
+Duplicate Detection (Invoice #, merchant, date, amount, image hash)
+          │
+          ▼
+Finance AI Agent (Risk analysis, compliance check, structured JSON, recommendation)
+          │
+          ▼
+Manager Dashboard (High-Risk Queue, Quick Decisions, AI reasoning)
+          │
+          ▼
+Finance Officer (Compliance score, fraud alerts, payment processing)
+          │
+          ▼
+Audit Logs & Smart Notifications & Analytics Intelligence
 ```
-
-1. **Pre-processing**: Uploaded files (JPEG, PNG, PDF) are normalized. Images are converted to grayscale and thresholded using OpenCV to maximize text contrast.
-2. **Text Scanning**: The system passes the clean image to the OCR module (e.g., Tesseract OCR or Google Cloud Document AI).
-3. **Output Generation**: The engine returns a raw text block preserving line layouts.
 
 ---
 
-## 2. Rule Engine Architecture
+## 2. Phase-by-Phase Technical Specifications
 
-The Rule Engine operates sequentially on the extracted JSON metadata *prior* to LLM analysis. This reduces LLM token overhead and guarantees instant validation for hard business limits.
+### Phase 1: OCR Integration
+- **Input**: PNG, JPG, JPEG, PDF up to 20 MB.
+- **Extracted Fields**:
+  - `vendor` (value, confidence)
+  - `invoice_number` (value, confidence)
+  - `transaction_date` (value, confidence)
+  - `currency` (value, confidence)
+  - `subtotal` (value, confidence)
+  - `tax_amount` (value, confidence)
+  - `total_amount` (value, confidence)
+  - `payment_method` (value, confidence)
+  - `merchant_address` (value, confidence)
+  - `gst_vat_number` (value, confidence)
+  - `category` (value, confidence)
+  - `overall_confidence` (score)
+- **UX Requirement**: Low confidence scores (<0.85) highlighted visually in the submission UI for user review prior to final submission.
 
-### 2.1 Core Validation Rules
-* **Limit Check**: Verifies if `amount` exceeds the policy threshold for the selected `category`.
-* **Duplicate Detection**: Searches MongoDB for pre-existing records matching:
-  $$\text{Duplicate Match} = (\text{vendor} \approx \text{existing\_vendor}) \land (\text{amount} = \text{existing\_amount}) \land (\text{date} = \text{existing\_date})$$
-  within a 30-day submission window.
-* **Format Checks**: Confirms standard receipt formats (e.g., invoice numbers must contain alphanumeric characters; GST numbers must follow standard patterns if applicable).
-
----
-
-## 3. Finance AI Agent & Prompt Design
-
-The Finance AI Agent processes the raw OCR text blocks to construct a clean JSON output, evaluate category validity, and run risk classifications.
-
-### 3.1 LLM Extraction Prompt (System Prompt)
-```
-You are an expert financial OCR auditor. Your task is to extract structural invoice metadata from the raw, unstructured text block scanned from a receipt.
-
-You must output a valid JSON object matching this schema. Do not output conversational text or markdown wrappers outside the JSON block.
-
-JSON Schema:
-{
-  "vendor": "String (Merchant name, clean up corporate suffixes like Inc or LLC)",
-  "invoice_number": "String (Invoice/Receipt number. If not found, use null)",
-  "amount": "Number (Total amount paid. If multiple totals, select the final balance)",
-  "expense_date": "String (ISO-8601 format YYYY-MM-DD. Normalize all dates here)",
-  "gst_details": "String (GST/VAT number if visible, else null)"
-}
-```
-
-### 3.2 Few-Shot Extraction Example
-* **User OCR Input**:
-  ```
-  * STARBUCKS #11029 *
-  120 MAIN STREET, AUSTIN, TX
-  DATE: 07/15/2026 08:31 AM
-  TKT# 88921-2
-  1x LATTE  $5.50
-  1x CROISSANT $4.50
-  SUBTOTAL: $10.00
-  TAX 8.25%: $0.83
-  TOTAL PAID: $10.83
-  THANK YOU!
-  ```
-* **AI Agent JSON Response**:
+### Phase 2: Rule Engine (`services/rule_engine.py`)
+- **Policy Enforcement**:
+  - Meals: Maximum $50 limit; Alcohol non-reimbursable.
+  - Travel: Hotel max $250/night; Flight economy class only; Taxi requires receipt.
+  - Office: Stationery, Equipment, Internet, Software licenses.
+- **Output Schema**:
   ```json
   {
-    "vendor": "Starbucks",
-    "invoice_number": "88921-2",
-    "amount": 10.83,
-    "expense_date": "2026-07-15",
-    "gst_details": null
+    "policy_status": "PASS",
+    "violations": [],
+    "risk_score": 18
   }
   ```
 
+### Phase 3: Duplicate Detection (`services/duplicate_service.py`)
+- **Matching Criteria**: Composite key of (Invoice Number, Merchant, Amount, Date) + Image Hash similarity.
+- **Output Schema**:
+  ```json
+  {
+    "duplicate": true,
+    "similar_expense": "EXP-1045",
+    "confidence": 0.91
+  }
+  ```
+
+### Phase 4: Finance AI Agent (`services/ai_service.py`)
+- Evaluates OCR output, rule violations, duplicate flags, and employee expense history.
+- **Output Schema**:
+  ```json
+  {
+    "summary": "Hotel expense during client visit.",
+    "risk": "Medium",
+    "recommendation": "Approve",
+    "confidence": 0.95,
+    "reason": [
+      "Amount within policy limit ($220 < $250/night)",
+      "Receipt verified with 0.96 confidence",
+      "No duplicates detected"
+    ],
+    "fraud_indicators": []
+  }
+  ```
+
+### Phase 5: RAG Integration (`services/rag_service.py`)
+- Stores Employee Handbook, Travel Policies, and HR Guidelines in vector embeddings (`BAAI/bge-small-en-v1.5` or `nomic-embed-text`).
+- Performs semantic vector search to return grounded policy answers with clause citations.
+
+### Phase 6: AI Chat Assistant (`services/chat_service.py`)
+- Global floating chat widget and dedicated `/ai-chat` page.
+- Answers queries on rejection reasons, submission guidelines, status updates, and policy boundaries.
+
+### Phase 7: Dashboard Intelligence (`services/analytics_ai.py`)
+- Provides AI Insights: Top spending categories, most violated policies, highest risk employees, pending approval trends, duplicate claim trends, monthly forecasts, and department anomalies.
+
+### Phase 8: Anomaly Detection (`services/ai_service.py`)
+- Flags unusual expenses: unusually large amounts (4x+ historical average), weekend transactions, frequent duplicate merchants, high refund frequencies, and unusual categories.
+- Output: `{ "anomaly": true, "severity": "High", "reason": "Expense is 4x higher than historical average." }`
+
+### Phase 9: Smart Notifications (`services/notification_service.py`)
+- Actionable, role-based smart alerts: Manager (high risk pending approvals), Finance (fraud alerts), Employee (missing receipt or policy violation), Admin (policy update notifications).
+
+### Phase 10: Audit Improvements (`repositories/ai_logs_repository.py`)
+- Full auditability: captures raw OCR output, Rule Engine flags, AI recommendations, user edits, and manager/finance override actions.
+
 ---
 
-## 4. Policy RAG Helper
+## 3. Required API Endpoints
 
-The system implements a local Retrieval-Augmented Generation (RAG) module to assist managers and finance teams in resolving ambiguous claims against the corporate travel and expense handbook.
+| Module | Method | Endpoint | Description |
+|---|---|---|---|
+| **OCR** | `POST` | `/api/ocr/upload` | Upload & process receipt file (max 20MB) |
+| **OCR** | `GET` | `/api/ocr/{expenseId}` | Retrieve OCR data for expense |
+| **Rules** | `POST` | `/api/rules/validate` | Validate draft against active policies |
+| **AI Agent** | `POST` | `/api/ai/analyze` | Perform full AI risk & compliance analysis |
+| **Chat** | `POST` | `/api/chat` | Send question to AI Assistant |
+| **Knowledge Base** | `POST` | `/api/knowledge/upload` | Ingest policy document into vector DB |
+| **Knowledge Base** | `GET` | `/api/knowledge/search` | Query policy vector DB |
+| **Analytics** | `GET` | `/api/analytics/ai` | Fetch AI insights, forecasts, & anomalies |
+| **Audit** | `GET` | `/api/audit/ai-logs` | Fetch auditable AI logs & override records |
 
-```mermaid
-graph LR
-    Doc[PDF Employee Handbook] -->|Split| Chunks[Text Chunks]
-    Chunks -->|Embed| Vectors[Vector Store]
-    Query[Manager Query: Is Uber Black covered?] -->|Search| Vectors
-    Vectors -->|Relevant Context| Prompt[LLM Prompt Context]
-    Prompt -->|Response| Answer[Output: Uber Black requires VP approval]
-```
+---
 
-### 4.1 RAG Architecture
-* **Ingestion**: The system chunks the company's PDF travel and expense policy handbook (e.g., 200-word chunks with 50-word overlaps).
-* **Embeddings**: Text chunks are converted into dense vector representations using a model like `text-embedding-3-small`.
-* **Vector Store**: Embeddings are stored in a database (e.g., Pinecone, Chroma, or MongoDB Vector Search).
-* **Retrieval & Verification**: When an expense is flagged as borderline (e.g., "Weekend dinner expense"), the AI agent queries the vector store for the corresponding policy segment and appends it to the manager's review panel.
+## 4. Required Frontend Modules
+
+- **Pages**:
+  - `AIReview.jsx`: High-risk approval queue & AI analysis cards.
+  - `AIChatPage.jsx`: Full-page AI policy & reimbursement assistant.
+  - `KnowledgeBase.jsx`: RAG document management & vector index viewer.
+  - `PolicyManager.jsx`: Company policy rule editor & limits configuration.
+  - `AILogs.jsx`: System-wide AI audit and override viewer.
+- **Updated Pages**:
+  - `ExpenseDetails.jsx`: Added AI summary, confidence scores, risk gauge, duplicate warning.
+  - `Dashboard.jsx`: High-risk queue, quick-decision panel, AI insights widgets.
+  - `SubmitExpense.jsx`: OCR drag-and-drop up to 20MB, field confidence highlighting.

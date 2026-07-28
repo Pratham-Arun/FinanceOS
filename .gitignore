@@ -25,6 +25,9 @@ frontend/dist/
 .npm
 .eslintcache
 
+# Backend uploads and local artifacts
+backend/uploads/
+
 # IDE & OS
 .vscode/
 .idea/

@@ -15,8 +15,22 @@ from repositories.user_repository import user_repository
 from repositories.policy_repository import policy_repository
 from repositories.notification_repository import notification_repository
 from repositories.audit_repository import audit_repository
+from repositories.knowledge_repository import knowledge_repository
+from repositories.ai_logs_repository import ai_logs_repository
+from repositories.expense_repository import expense_repository
+
 from services.expense_service import expense_service
 from services.analytics_service import analytics_service
+from services.ocr_service import ocr_service
+from services.rule_engine import rule_engine
+from services.duplicate_service import duplicate_service
+from services.ai_service import ai_service
+from services.rag_service import rag_service
+from services.chat_service import chat_service
+from services.analytics_ai import analytics_ai_service
+from services.notification_service import notification_service
+from services.llm.llm_factory import set_active_llm_provider
+from services.ocr.ocr_factory import set_active_ocr_provider
 
 load_dotenv()
 
@@ -34,7 +48,7 @@ SEED_USERS = [
     },
     {
         "id": "60d5ec49f1b29c2d18c1d502",
-        "name": "Jane Employee",
+        "name": "Pratham Employee",
         "email": "employee@demo.com",
         "password_hash": bcrypt.hashpw(b"demo1234", bcrypt.gensalt(10)).decode('utf-8'),
         "role": "Employee",
@@ -42,7 +56,7 @@ SEED_USERS = [
     },
     {
         "id": "60d5ec49f1b29c2d18c1d503",
-        "name": "John Manager",
+        "name": "Pratham Manager",
         "email": "manager@demo.com",
         "password_hash": bcrypt.hashpw(b"demo1234", bcrypt.gensalt(10)).decode('utf-8'),
         "role": "Manager",
@@ -50,7 +64,7 @@ SEED_USERS = [
     },
     {
         "id": "60d5ec49f1b29c2d18c1d504",
-        "name": "Frank Finance",
+        "name": "Pratham Finance",
         "email": "finance@demo.com",
         "password_hash": bcrypt.hashpw(b"demo1234", bcrypt.gensalt(10)).decode('utf-8'),
         "role": "Finance",
@@ -130,6 +144,34 @@ class ExpenseUpdateRequest(BaseModel):
     description: Optional[str] = None
     receipt_url: Optional[str] = None
     status: Optional[str] = None
+
+class RuleValidateRequest(BaseModel):
+    category: str
+    amount: float
+    title: Optional[str] = ""
+    description: Optional[str] = ""
+    receipt_url: Optional[str] = None
+    expense_date: Optional[str] = None
+
+class AIAnalyzeRequest(BaseModel):
+    expense_data: Dict[str, Any]
+    ocr_result: Optional[Dict[str, Any]] = None
+
+class ChatMessageRequest(BaseModel):
+    message: str
+
+class KnowledgeUploadRequest(BaseModel):
+    title: str
+    category: str
+    content: str
+
+class AIConfigRequest(BaseModel):
+    llm_provider: Optional[str] = None     # openai | gemini | claude
+    ocr_provider: Optional[str] = None     # tesseract | google | azure
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    risk_threshold_auto_approve: Optional[float] = 0.95
+    risk_threshold_review: Optional[float] = 0.80
 
 class ApprovalActionRequest(BaseModel):
     action: str
@@ -409,3 +451,238 @@ async def mark_read(user: Dict[str, Any] = Depends(get_current_user)):
 @app.get("/api/analytics/summary")
 async def get_analytics_summary(user: Dict[str, Any] = Depends(get_current_user)):
     return await analytics_service.get_summary(user)
+
+
+# --- Phase 1: Advanced OCR Endpoints ---
+@app.post("/api/ocr/upload")
+async def process_ocr_upload(
+    file: UploadFile = File(...),
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    contents = await file.read()
+    valid, msg = ocr_service.validate_file(file.filename, len(contents))
+    if not valid:
+        raise HTTPException(status_code=400, detail=msg)
+    
+    res = await ocr_service.process_receipt(contents, file.filename)
+    await ai_logs_repository.log_event(
+        expense_id=None,
+        user_id=user["id"],
+        event_type="OCR_PROCESSED",
+        ocr_data=res
+    )
+    return res
+
+@app.get("/api/ocr/{expenseId}")
+async def get_ocr_by_expense(
+    expenseId: str,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    expense = await expense_service.get_expense_details(user, expenseId)
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    ocr_results = await ocr_service.process_receipt(b"mock_content", expense.get("receipt_url", "receipt.jpg"))
+    return {"expense_id": expenseId, "ocr_data": ocr_results}
+
+
+# --- Phase 2: Rule Engine Endpoint ---
+@app.post("/api/rules/validate")
+async def validate_rules(
+    req: RuleValidateRequest,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    res = await rule_engine.validate_expense(req.dict())
+    await ai_logs_repository.log_event(
+        expense_id=None,
+        user_id=user["id"],
+        event_type="RULE_VALIDATION",
+        rule_output=res
+    )
+    return res
+
+
+# --- Phase 3 & 4 & 8: Finance AI Agent Endpoint ---
+@app.post("/api/ai/analyze")
+async def analyze_expense_ai(
+    req: AIAnalyzeRequest,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    exp_data = req.expense_data
+    rule_res = await rule_engine.validate_expense(exp_data)
+    dup_res = await duplicate_service.check_duplicate(
+        user["id"],
+        exp_data.get("vendor") or exp_data.get("title"),
+        exp_data.get("invoice_number"),
+        float(exp_data.get("amount", 0.0)),
+        exp_data.get("expense_date", "")
+    )
+    
+    emp_history = await expense_repository.find_all_by_employee(user["id"])
+    ai_res = await ai_service.analyze_expense(
+        exp_data,
+        ocr_result=req.ocr_result,
+        rule_result=rule_res,
+        duplicate_result=dup_res,
+        employee_history=emp_history
+    )
+
+    await ai_logs_repository.log_event(
+        expense_id=exp_data.get("id"),
+        user_id=user["id"],
+        event_type="AI_ANALYSIS",
+        ocr_data=req.ocr_result,
+        rule_output=rule_res,
+        ai_recommendation=ai_res
+    )
+    return ai_res
+
+
+# --- Phase 5 & 6: AI Chat & RAG Knowledge Endpoints ---
+@app.post("/api/chat")
+async def chat_with_ai(
+    req: ChatMessageRequest,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    return await chat_service.process_chat_message(user["id"], user["role"], req.message)
+
+@app.post("/api/knowledge/upload")
+async def upload_knowledge_doc(
+    req: KnowledgeUploadRequest,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    if user["role"] not in ["Admin", "Finance"]:
+        raise HTTPException(status_code=403, detail="Admin or Finance role required")
+    res = await rag_service.ingest_document(req.title, req.category, req.content)
+    await audit_repository.create(user["id"], "KNOWLEDGE_INGESTED", f"Uploaded RAG document: {req.title}")
+    return res
+
+@app.get("/api/knowledge/search")
+async def search_knowledge_docs(
+    q: str = Query(...),
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    return await rag_service.search_policies(q)
+
+
+# --- Phase 7: Dashboard Intelligence Endpoint ---
+@app.get("/api/analytics/ai")
+async def get_ai_analytics(user: Dict[str, Any] = Depends(get_current_user)):
+    return await analytics_ai_service.get_dashboard_intelligence()
+
+
+# --- Phase 10: AI Audit Logs Endpoint ---
+@app.get("/api/audit/ai-logs")
+async def get_ai_audit_logs(
+    limit: int = Query(50, ge=1, le=200),
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    return await ai_logs_repository.get_logs(limit=limit)
+
+
+# --- AI Configuration Panel (Improvement #12) ---
+_ai_config_state: Dict[str, Any] = {
+    "llm_provider": "openai",
+    "ocr_provider": "tesseract",
+    "temperature": 0.2,
+    "max_tokens": 1024,
+    "risk_threshold_auto_approve": 0.95,
+    "risk_threshold_review": 0.80
+}
+
+@app.get("/api/admin/ai-config")
+async def get_ai_config(user: Dict[str, Any] = Depends(get_current_user)):
+    return _ai_config_state
+
+@app.put("/api/admin/ai-config")
+async def update_ai_config(
+    req: AIConfigRequest,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    if user["role"] != "Admin":
+        raise HTTPException(status_code=403, detail="Admin role required")
+
+    if req.llm_provider:
+        _ai_config_state["llm_provider"] = set_active_llm_provider(req.llm_provider)
+    if req.ocr_provider:
+        _ai_config_state["ocr_provider"] = set_active_ocr_provider(req.ocr_provider)
+    if req.temperature is not None:
+        _ai_config_state["temperature"] = req.temperature
+    if req.max_tokens is not None:
+        _ai_config_state["max_tokens"] = req.max_tokens
+    if req.risk_threshold_auto_approve is not None:
+        _ai_config_state["risk_threshold_auto_approve"] = req.risk_threshold_auto_approve
+    if req.risk_threshold_review is not None:
+        _ai_config_state["risk_threshold_review"] = req.risk_threshold_review
+
+    await audit_repository.create(
+        user["id"],
+        "AI_CONFIG_UPDATED",
+        f"AI Config: LLM={_ai_config_state['llm_provider']}, OCR={_ai_config_state['ocr_provider']}"
+    )
+    logger.info(f"Admin {user['id']} updated AI config: {_ai_config_state}")
+    return _ai_config_state
+
+
+# --- Policy Version History (Improvement #13) ---
+@app.get("/api/admin/policies/history")
+async def get_policy_version_history(user: Dict[str, Any] = Depends(get_current_user)):
+    if user["role"] not in ["Admin", "Finance"]:
+        raise HTTPException(status_code=403, detail="Admin or Finance role required")
+    return await policy_repository.get_version_history()
+
+
+# --- Approval Timeline (Improvement #14) ---
+@app.get("/api/expenses/{id}/timeline")
+async def get_expense_timeline(
+    id: str,
+    user: Dict[str, Any] = Depends(get_current_user)
+):
+    expense = await expense_service.get_expense_details(user, id)
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    from repositories.approval_repository import approval_repository
+    approvals = await approval_repository.find_by_expense_id(id)
+    ai_logs = await ai_logs_repository.get_logs_by_expense(id)
+
+    steps = [
+        {
+            "step": "Submitted",
+            "status": "completed",
+            "timestamp": expense.get("created_at"),
+            "details": f"Submitted by {expense.get('employee_name')}"
+        },
+        {
+            "step": "OCR Processing",
+            "status": "completed" if expense.get("receipt_url") else "pending",
+            "timestamp": expense.get("created_at"),
+            "details": f"Receipt processed via OCR" if expense.get("receipt_url") else "No receipt attached"
+        },
+        {
+            "step": "Rule Engine",
+            "status": "completed" if any(l.get("event_type") == "RULE_VALIDATION" for l in ai_logs) else "pending",
+            "timestamp": next((l.get("timestamp") for l in ai_logs if l.get("event_type") == "RULE_VALIDATION"), None),
+            "details": "Policy compliance validation completed"
+        },
+        {
+            "step": "AI Analysis",
+            "status": "completed" if any(l.get("event_type") == "AI_ANALYSIS" for l in ai_logs) else "pending",
+            "timestamp": next((l.get("timestamp") for l in ai_logs if l.get("event_type") == "AI_ANALYSIS"), None),
+            "details": "Risk scoring & explainable recommendation generated"
+        },
+        {
+            "step": "Manager Approval",
+            "status": "completed" if expense.get("status") in ["Approved", "Paid"] else
+                      "rejected" if expense.get("status") == "Rejected" else "pending",
+            "timestamp": next((a.get("actioned_at") for a in approvals if a.get("approver_role") == "Manager"), None),
+            "details": next((a.get("comments") for a in approvals if a.get("approver_role") == "Manager"), "Awaiting manager review")
+        },
+        {
+            "step": "Payment Processed",
+            "status": "completed" if expense.get("status") == "Paid" else "pending",
+            "timestamp": next((a.get("actioned_at") for a in approvals if a.get("action") == "Approve & Pay"), None),
+            "details": f"Payment Ref: {expense.get('payment_reference')}" if expense.get("payment_reference") else "Awaiting finance payout"
+        }
+    ]
+
+    return {"expense_id": id, "timeline": steps}

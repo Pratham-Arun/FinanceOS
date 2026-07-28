@@ -13,9 +13,16 @@ import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+import AIReview from './pages/AIReview';
+import AIChatPage from './pages/AIChatPage';
+import KnowledgeBase from './pages/KnowledgeBase';
+import PolicyManager from './pages/PolicyManager';
+import AILogs from './pages/AILogs';
+import AIConfigPanel from './pages/AIConfigPanel';
 
 // Import Components
 import AppShell from './components/AppShell';
+import FloatingAIChat from './components/FloatingAIChat';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -84,8 +91,15 @@ function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/ai-review" element={<Navigate to="/expenses?tab=high-risk" replace />} />
+                    <Route path="/ai-chat" element={<Navigate to="/" replace />} />
+                    <Route path="/knowledge" element={<KnowledgeBase />} />
+                    <Route path="/policy-rules" element={<PolicyManager />} />
+                    <Route path="/ai-logs" element={<AILogs />} />
+                    <Route path="/ai-config" element={<AIConfigPanel />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
+                  <FloatingAIChat />
                 </AppShell>
               </ProtectedRoute>
             }

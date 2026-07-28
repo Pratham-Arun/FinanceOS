@@ -43,6 +43,12 @@ class ExpenseRepository:
         })
         return format_doc(doc)
 
+    async def find_all_by_employee(self, employee_id: str) -> List[Dict[str, Any]]:
+        return await self.find_expenses({"employee_id": employee_id})
+
+    async def find_all(self) -> List[Dict[str, Any]]:
+        return await self.find_expenses({})
+
     async def aggregate(self, pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         cursor = self.col.aggregate(pipeline)
         docs = await cursor.to_list(None)

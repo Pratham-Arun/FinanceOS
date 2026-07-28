@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
+import { PageHeader } from '../components/ui/PageHeader';
 import {
   Upload, FileText, CheckCircle2, RefreshCw, AlertCircle, Sparkles,
   ArrowLeft, ArrowRight, ShieldCheck, Check
@@ -25,7 +26,7 @@ const SubmitExpense = () => {
   });
   const [error, setError] = useState('');
   const [confidence, setConfidence] = useState(null);
-  const [step, setStep] = useState(1); // 1: Upload, 2: Review & Submit
+  const [step, setStep] = useState(1);
 
   const validateAndUploadFile = async (selectedFile) => {
     if (!selectedFile) return;
@@ -53,7 +54,7 @@ const SubmitExpense = () => {
       });
 
       const { receipt_url, ai_extraction } = response.data;
-      
+
       setExtractedData(ai_extraction);
       setConfidence(ai_extraction.confidence_scores);
       setFormData({
@@ -87,7 +88,7 @@ const SubmitExpense = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (!formData.title || !formData.amount || !formData.expense_date) {
       setError('Please complete all mandatory fields (*).');
       return;
@@ -138,37 +139,30 @@ const SubmitExpense = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '1000px' }}>
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <button
-            onClick={() => navigate('/expenses')}
-            className="btn btn-ghost btn-xs"
-            style={{ marginBottom: '8px', color: 'var(--text-tertiary)' }}
-          >
-            <ArrowLeft size={13} /> Back to Expenses
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }} className="animate-fade-up">
+
+      {/* Page Header */}
+      <PageHeader
+        title="Submit Expense Claim"
+        subtitle="Upload your receipt or invoice to let FinanceOS AI automatically extract amounts, vendors, and dates."
+        icon={<Upload size={20} />}
+        actions={
+          <button onClick={() => navigate('/expenses')} className="btn btn-secondary btn-sm">
+            <ArrowLeft size={14} /> Back
           </button>
-          <h2 className="page-title">Submit Expense Claim</h2>
-          <p className="page-subtitle">
-            Upload your receipt or invoice to let FinanceOS AI automatically extract amounts, vendors, and dates.
-          </p>
-        </div>
-      </div>
+        }
+      />
 
       {/* Workflow Stepper */}
-      <div style={{
+      <div className="card" style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '12px',
-        padding: '12px 20px',
-        background: 'var(--surface-raised)',
-        border: '1px solid var(--border-default)',
-        borderRadius: 'var(--radius-lg)'
+        gap: 'var(--sp-4)',
+        padding: 'var(--sp-3) var(--sp-5)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: step >= 1 ? 1 : 0.4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', opacity: step >= 1 ? 1 : 0.4 }}>
           <span style={{
-            width: '22px', height: '22px', borderRadius: '50%',
+            width: 22, height: 22, borderRadius: '50%',
             background: step === 1 ? 'var(--indigo-500)' : step > 1 ? 'var(--emerald-500)' : 'var(--border-default)',
             color: '#fff', fontSize: 'var(--text-xs)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
@@ -176,12 +170,12 @@ const SubmitExpense = () => {
           </span>
           <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>Upload Document</span>
         </div>
-        
+
         <ArrowRight size={14} style={{ color: 'var(--text-tertiary)' }} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: step >= 2 ? 1 : 0.4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', opacity: step >= 2 ? 1 : 0.4 }}>
           <span style={{
-            width: '22px', height: '22px', borderRadius: '50%',
+            width: 22, height: 22, borderRadius: '50%',
             background: step === 2 ? 'var(--indigo-500)' : 'var(--border-default)',
             color: '#fff', fontSize: 'var(--text-xs)', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
@@ -192,9 +186,10 @@ const SubmitExpense = () => {
       </div>
 
       {/* Main Grid Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Left Side: Upload Zone & AI Parsing Card */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-6)', alignItems: 'start' }}>
+
+        {/* Left Column: Upload Zone & AI Confidence */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
           <div
             className={`upload-zone ${isDragging ? 'dragging' : ''}`}
             onClick={() => document.getElementById('receipt-input').click()}
@@ -217,21 +212,23 @@ const SubmitExpense = () => {
             />
 
             {uploading ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--sp-3)' }}>
                 <RefreshCw size={32} className="animate-spin" style={{ color: 'var(--indigo-400)' }} />
-                <div style={{ fontWeight: 500, fontSize: 'var(--text-md)' }}>Analyzing Document with OCR…</div>
+                <div style={{ fontWeight: 600, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
+                  Analyzing Document with OCR…
+                </div>
                 <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
                   Extracting line items, vendor name, dates, and total amount
                 </div>
               </div>
             ) : file ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--sp-2)' }}>
                 <div style={{
-                  padding: '12px', borderRadius: '50%', background: 'var(--indigo-50)', color: 'var(--indigo-400)'
+                  padding: 'var(--sp-3)', borderRadius: '50%', background: 'var(--indigo-100)', color: 'var(--indigo-400)'
                 }}>
                   <FileText size={24} />
                 </div>
-                <div style={{ fontWeight: 500, fontSize: 'var(--text-md)' }}>{file.name}</div>
+                <div style={{ fontWeight: 600, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>{file.name}</div>
                 <div className="text-mono" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
                   {(file.size / (1024 * 1024)).toFixed(2)} MB · {file.type.split('/')[1]?.toUpperCase()}
                 </div>
@@ -244,37 +241,37 @@ const SubmitExpense = () => {
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--sp-2)' }}>
                 <div style={{
-                  padding: '14px', borderRadius: '50%', background: 'var(--surface-overlay)', color: 'var(--text-tertiary)'
+                  padding: 'var(--sp-3)', borderRadius: '50%', background: 'var(--surface-overlay)', color: 'var(--text-tertiary)'
                 }}>
                   <Upload size={24} />
                 </div>
-                <div style={{ fontWeight: 500, fontSize: 'var(--text-md)' }}>
+                <div style={{ fontWeight: 600, fontSize: 'var(--text-md)', color: 'var(--text-primary)' }}>
                   {isDragging ? 'Drop receipt file here' : 'Upload Receipt or Invoice'}
                 </div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', maxWidth: '280px' }}>
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', maxWidth: 280, lineHeight: 1.5 }}>
                   Drag and drop PNG, JPG, or PDF (max 5 MB). Or click to browse.
                 </div>
               </div>
             )}
           </div>
 
-          {/* AI Confidence Card */}
+          {/* AI Extraction Confidence */}
           {confidence && (
-            <div className="ai-panel">
-              <div className="ai-panel-header">
+            <div className="card-ai" style={{ padding: 'var(--sp-5)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-2)', marginBottom: 'var(--sp-3)' }}>
                 <Sparkles size={15} style={{ color: 'var(--violet-400)' }} />
-                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)' }}>
+                <span className="card-title" style={{ fontSize: 'var(--text-sm)', color: 'var(--violet-400)' }}>
                   AI Extraction Confidence
                 </span>
-                <span className="badge badge-violet" style={{ marginLeft: 'auto' }}>Automated</span>
+                <span className="badge badge-violet" style={{ marginLeft: 'auto' }}>OCR Verified</span>
               </div>
-              <div className="ai-panel-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-3)' }}>
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Vendor Name:</span>
-                    <span className="text-mono" style={{ fontWeight: 500, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.vendor)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: 4 }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>Vendor Name</span>
+                    <span className="text-mono" style={{ fontWeight: 600, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.vendor)}</span>
                   </div>
                   <div className="progress-track">
                     <div className="progress-fill" style={{ width: formatConfidence(confidence.vendor), background: 'var(--emerald-500)' }} />
@@ -282,9 +279,9 @@ const SubmitExpense = () => {
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Transaction Amount:</span>
-                    <span className="text-mono" style={{ fontWeight: 500, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.amount)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: 4 }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>Transaction Amount</span>
+                    <span className="text-mono" style={{ fontWeight: 600, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.amount)}</span>
                   </div>
                   <div className="progress-track">
                     <div className="progress-fill" style={{ width: formatConfidence(confidence.amount), background: 'var(--emerald-500)' }} />
@@ -292,9 +289,9 @@ const SubmitExpense = () => {
                 </div>
 
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: '4px' }}>
-                    <span style={{ color: 'var(--text-tertiary)' }}>Transaction Date:</span>
-                    <span className="text-mono" style={{ fontWeight: 500, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.date)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--text-xs)', marginBottom: 4 }}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>Transaction Date</span>
+                    <span className="text-mono" style={{ fontWeight: 600, color: 'var(--emerald-400)' }}>{formatConfidence(confidence.date)}</span>
                   </div>
                   <div className="progress-track">
                     <div className="progress-fill" style={{ width: formatConfidence(confidence.date), background: 'var(--emerald-500)' }} />
@@ -305,21 +302,20 @@ const SubmitExpense = () => {
           )}
         </div>
 
-        {/* Right Side: Form details */}
-        <div className="card" style={{ padding: '24px' }}>
-          <div style={{ marginBottom: '20px' }}>
-            <h3 className="section-title">Claim Details</h3>
-            <p className="section-sub">Review pre-filled details extracted by AI or type manually.</p>
+        {/* Right Column: Form Details */}
+        <div className="card" style={{ padding: 'var(--sp-6)' }}>
+          <div className="section-header">
+            <div className="section-title">Claim Parameters</div>
           </div>
 
           {error && (
-            <div className="alert alert-error" style={{ marginBottom: '16px' }}>
-              <AlertCircle size={14} style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div className="alert alert-error" style={{ marginBottom: 'var(--sp-4)' }}>
+              <AlertCircle size={15} style={{ flexShrink: 0 }} />
               <span style={{ fontSize: 'var(--text-sm)' }}>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
             <div className="form-group">
               <label className="field-label" htmlFor="title">Expense Title *</label>
               <input
@@ -328,7 +324,7 @@ const SubmitExpense = () => {
                 type="text"
                 required
                 className="field-input"
-                placeholder="e.g., Client Dinner at Bistro"
+                placeholder="e.g. Client Lunch at Bistro"
                 value={formData.title}
                 onChange={handleInputChange}
               />
@@ -340,7 +336,8 @@ const SubmitExpense = () => {
                 <select
                   id="category"
                   name="category"
-                  className="filter-select field-input"
+                  className="filter-select"
+                  style={{ width: '100%', height: 38 }}
                   value={formData.category}
                   onChange={handleInputChange}
                 >
@@ -382,20 +379,38 @@ const SubmitExpense = () => {
             </div>
 
             <div className="form-group">
-              <label className="field-label" htmlFor="description">Description</label>
+              <label className="field-label" htmlFor="description">Notes / Description</label>
               <textarea
                 id="description"
                 name="description"
                 rows="3"
                 className="field-input"
-                placeholder="Provide additional details or project code..."
+                placeholder="Provide details or business context…"
                 value={formData.description}
                 onChange={handleInputChange}
-                style={{ resize: 'vertical' }}
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+            {/* AI Policy Pre-Check Banner */}
+            {formData.amount > 0 && (
+              <div className="alert alert-ai">
+                <Sparkles size={15} style={{ flexShrink: 0, color: 'var(--violet-400)' }} />
+                <div style={{ fontSize: 'var(--text-xs)' }}>
+                  <strong>FinanceOS AI Policy Pre-Check:</strong>
+                  {parseFloat(formData.amount) > 50 && formData.category === 'Meals' && (
+                    <div style={{ color: 'var(--amber-400)', marginTop: 2 }}>⚠️ Meal claims above $50 require itemized receipt verification.</div>
+                  )}
+                  {parseFloat(formData.amount) > 250 && formData.category === 'Accommodation' && (
+                    <div style={{ color: 'var(--crimson-400)', marginTop: 2 }}>⚠️ Hotel claims above $250 exceed standard cap limit.</div>
+                  )}
+                  {parseFloat(formData.amount) <= 50 && (
+                    <div style={{ color: 'var(--emerald-400)', marginTop: 2 }}>✓ Claim amount complies with baseline policy limits.</div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: 'var(--sp-3)', marginTop: 'var(--sp-2)' }}>
               <button type="submit" className="btn btn-primary btn-md" style={{ flex: 1 }}>
                 Submit Claim
               </button>

@@ -21,13 +21,31 @@ class PolicyRepository:
         return format_docs(docs)
 
     async def upsert_policy(self, category: str, max_limit: float, receipt_required: bool, duplicate_window_days: int) -> Dict[str, Any]:
+        import datetime
+        import time
         policy_data = {
             "category": category,
             "max_limit": max_limit,
             "receipt_required": receipt_required,
-            "duplicate_window_days": duplicate_window_days
+            "duplicate_window_days": duplicate_window_days,
+            "version": f"v{int(time.time()) % 10000}",
+            "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
         await self.col.update_one({"category": category}, {"$set": policy_data}, upsert=True)
+        # Append to version history
+        await self.col.update_one(
+            {"category": category},
+            {"$push": {"version_history": {
+                "version": policy_data["version"],
+                "max_limit": max_limit,
+                "receipt_required": receipt_required,
+                "updated_at": policy_data["updated_at"]
+            }}}
+        )
         return policy_data
+
+    async def get_version_history(self) -> List[Dict[str, Any]]:
+        docs = await self.col.find({}, {"version_history": 1, "category": 1}).to_list(None)
+        return format_docs(docs)
 
 policy_repository = PolicyRepository()

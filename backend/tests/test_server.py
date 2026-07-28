@@ -24,16 +24,18 @@ def test_login_invalid_email(client):
     assert response.status_code == 401
 
 def test_user_registration_and_duplicate(client):
+    import time
+    email = f"user_{time.time_ns()}@demo.com"
     reg_payload = {
         "name": "New Test User",
-        "email": "newuser@demo.com",
+        "email": email,
         "password": "password123",
         "role": "Employee"
     }
     # First registration
     resp1 = client.post("/api/auth/register", json=reg_payload)
     assert resp1.status_code == 200
-    assert resp1.json()["user"]["email"] == "newuser@demo.com"
+    assert resp1.json()["user"]["email"] == email
 
     # Duplicate registration attempt
     resp2 = client.post("/api/auth/register", json=reg_payload)
