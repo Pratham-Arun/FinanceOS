@@ -1,77 +1,293 @@
 # FinanceOS
 
-> AI-Powered Enterprise Expense Reimbursement Platform
+<div align="center">
 
-FinanceOS is a modern enterprise expense reimbursement platform designed to automate the entire reimbursement lifecycle using Artificial Intelligence, OCR, policy validation, and multi-stage approval workflows.
+# AI-Powered Enterprise Expense Reimbursement Platform
 
-The platform enables employees to submit expenses, managers to review AI-assisted recommendations, finance teams to verify and process reimbursements, and administrators to configure company reimbursement policies, all through a clean enterprise-grade interface.
+Enterprise-grade Expense Management Platform powered by OCR, Explainable AI, Rule Engine, Retrieval-Augmented Generation (RAG), Intelligent Workflow Automation, and Role-Based Access Control.
 
 ---
 
-## Features
+![React](https://img.shields.io/badge/Frontend-React-blue?style=for-the-badge)
+![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green?style=for-the-badge)
+![MongoDB](https://img.shields.io/badge/Database-MongoDB-darkgreen?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge)
+![JWT](https://img.shields.io/badge/Auth-JWT-orange?style=for-the-badge)
+![AI](https://img.shields.io/badge/Enterprise-AI-purple?style=for-the-badge)
+![RAG](https://img.shields.io/badge/RAG-Integrated-red?style=for-the-badge)
 
-### Authentication & Authorization
+</div>
+
+---
+
+# Overview
+
+FinanceOS is an AI-powered Enterprise Expense Reimbursement Platform designed to modernize and automate the complete reimbursement lifecycle.
+
+Unlike traditional expense systems, FinanceOS combines Artificial Intelligence with enterprise workflow automation to reduce manual effort, improve compliance, detect fraud, and accelerate reimbursement approvals.
+
+The platform supports multiple organizational roles with intelligent assistance throughout the reimbursement workflow.
+
+FinanceOS was developed as an enterprise-scale software engineering project demonstrating modern frontend architecture, scalable backend design, modular AI integration, and production-inspired software practices.
+
+---
+
+# Features
+
+## Expense Management
+
+- Expense Submission
+- Expense Tracking
+- Receipt Upload
+- Expense Categories
+- Approval Workflow
+- Payment Status
+- Notifications
+
+---
+
+## Authentication & Security
 
 - JWT Authentication
-- Role-Based Access Control (RBAC)
-- Employee
-- Manager
-- Finance Officer
-- Administrator
+- Role-Based Access Control
+- Protected APIs
+- Secure Password Storage
+- Authorization Middleware
 
-### Expense Management
+---
 
-- Create Draft Expenses
-- Submit Expenses
-- Edit Drafts
-- Delete Drafts
-- Expense History
-- Receipt Upload
+## AI Capabilities
 
-### AI-Powered Workflow
-
-- OCR Receipt Processing
+- OCR Receipt Extraction
 - AI Expense Analysis
-- Policy Validation
-- Duplicate Detection
-- Risk Assessment
+- Rule Engine Validation
+- Duplicate Claim Detection
+- Fraud Risk Scoring
+- Explainable AI
+- AI Confidence Scoring
 - AI Recommendation Engine
+- AI Copilot Assistant
+- Retrieval-Augmented Generation (RAG)
+- Policy Question Answering
 
-### Approval Workflow
+---
 
-Employee
+## Enterprise Features
 
-↓
+- Audit Logging
+- AI Observability
+- Policy Versioning
+- AI Model Versioning
+- AI Configuration Panel
+- Knowledge Base
+- Smart Notifications
+- Enterprise Analytics
 
-Manager Review
+---
 
-↓
+# System Architecture
 
-Finance Verification
+```text
+                 React Frontend
+                        │
+                        ▼
+                 FastAPI Backend
+                        │
+      ┌─────────────────┼─────────────────┐
+      ▼                 ▼                 ▼
+ Authentication     Expense Service     AI Service
+      │                 │                 │
+      ▼                 ▼                 ▼
+ Repository Layer   Rule Engine      LLM Provider
+      │                 │                 │
+      ▼                 ▼                 ▼
+    MongoDB       OCR Provider      Vector Store
+```
 
-↓
+---
 
-Payment Processing
+# AI Workflow
 
-↓
+```text
+Employee Uploads Receipt
+            │
+            ▼
+OCR Extraction
+            │
+            ▼
+Rule Engine Validation
+            │
+            ▼
+Duplicate Detection
+            │
+            ▼
+Fraud Risk Analysis
+            │
+            ▼
+Explainable AI Recommendation
+            │
+            ▼
+Manager Approval
+            │
+            ▼
+Finance Approval
+            │
+            ▼
+Payment
+            │
+            ▼
+Audit Logs
+            │
+            ▼
+Analytics
+```
 
-Audit Logging
+---
 
-### Analytics
+# User Roles
 
-- Expense Trends
-- Category Breakdown
-- Monthly Reports
-- Approval Statistics
-- Department Spending
-- Dashboard KPIs
+## Employee
 
-### Administration
+Responsibilities
 
-- Policy Management
+- Submit Expenses
+- Upload Receipts
+- Track Claim Status
+- Receive Notifications
+- Ask AI Copilot Questions
+
+---
+
+## Manager
+
+Responsibilities
+
+- Review Team Expenses
+- Approve / Reject Claims
+- Review High-Risk Claims
+- View AI Recommendations
+
+---
+
+## Finance Officer
+
+Responsibilities
+
+- Final Expense Verification
+- Payment Processing
+- Compliance Review
+- Analytics Monitoring
+
+---
+
+## Administrator
+
+Responsibilities
+
 - User Management
-- Audit Logs
-- Notification Center
+- Policy Management
+- AI Configuration
+- Knowledge Base Management
+- AI Audit Logs
+- Rule Engine Configuration
+
+---
+
+# AI Modules
+
+## OCR Engine
+
+Automatically extracts
+
+- Vendor Name
+- Invoice Number
+- Transaction Date
+- Currency
+- Total Amount
+- Tax Amount
+- Payment Method
+- Receipt Category
+
+Supported Formats
+
+- PNG
+- JPG
+- JPEG
+- PDF
+
+---
+
+## Rule Engine
+
+Validates
+
+- Meal Limits
+- Hotel Limits
+- Travel Policies
+- Receipt Requirements
+- Duplicate Submission Rules
+- Company Expense Policies
+
+---
+
+## Duplicate Detection
+
+Detects duplicate claims using
+
+- Invoice Number
+- Merchant
+- Amount
+- Date
+- Receipt Image Hash
+
+---
+
+## Explainable AI
+
+Generates
+
+- Expense Summary
+- Recommendation
+- Fraud Score
+- Confidence Score
+- Policy Violations
+- Supporting Evidence
+
+---
+
+## Fraud Risk Scoring
+
+Risk Scale
+
+| Score | Level |
+|--------|--------|
+| 0–20 | Very Safe |
+| 21–60 | Review |
+| 61–100 | High Risk |
+
+---
+
+## RAG Knowledge Base
+
+Allows AI to answer questions using
+
+- Company Policies
+- Travel Guidelines
+- Employee Handbook
+- Finance Documents
+- Compliance Manuals
+
+---
+
+## AI Copilot
+
+Provides
+
+- Policy Assistance
+- Expense Guidance
+- Claim Status
+- Reimbursement Help
+- Compliance Questions
 
 ---
 
@@ -82,88 +298,35 @@ Audit Logging
 - React
 - React Router
 - Tailwind CSS
-- Recharts
 - Axios
+- Recharts
+
+---
 
 ## Backend
 
 - FastAPI
 - Python
-- Motor (MongoDB Async Driver)
-- JWT Authentication
 - Pydantic
+- Motor
+- JWT Authentication
+
+---
 
 ## Database
 
-- MongoDB Community Edition
+- MongoDB
+
+---
 
 ## AI
 
-- OCR Pipeline
+- OCR
 - Rule Engine
-- Finance AI Review
-- Explainable AI (Planned)
-- RAG Policy Retrieval (Planned)
-
----
-
-# System Architecture
-
-```
-                +----------------------+
-                |      React UI        |
-                +----------+-----------+
-                           |
-                           |
-                    REST API (FastAPI)
-                           |
-      +---------+----------+----------+
-      |         |                     |
- Authentication Expenses        Analytics
-      |         |                     |
-      +---------+----------+----------+
-                           |
-                      MongoDB Database
-                           |
-                   AI Processing Layer
-         OCR → Rule Engine → AI Review
-```
-
----
-
-# Expense Workflow
-
-```
-Employee
-
-↓
-
-Upload Receipt
-
-↓
-
-OCR Extraction
-
-↓
-
-AI Policy Validation
-
-↓
-
-Manager Approval
-
-↓
-
-Finance Verification
-
-↓
-
-Payment
-
-↓
-
-Audit Log
-```
+- Explainable AI
+- RAG
+- ChromaDB
+- GPT / Gemini / Claude Provider Abstraction
 
 ---
 
@@ -171,41 +334,126 @@ Audit Log
 
 ```
 FinanceOS/
-│
-├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
-├── backend/
-│   ├── repositories/
-│   ├── services/
-│   ├── utils/
-│   ├── tests/
-│   ├── database.py
-│   ├── server.py
-│   └── pyproject.toml
-│
-├── docs/
-│
-└── README.md
+
+frontend/
+    src/
+    components/
+    pages/
+    hooks/
+    services/
+
+backend/
+    repositories/
+    services/
+        ai/
+        llm/
+        ocr/
+        vector_store/
+    uploads/
+    tests/
+
+README.md
 ```
 
 ---
 
-# Getting Started
+# Enterprise Architecture
 
-## Clone the Repository
+Implemented Design Patterns
+
+- Repository Pattern
+- Service Layer Pattern
+- Factory Pattern
+- Provider Abstraction
+- Dependency Injection
+- Modular AI Services
+
+---
+
+# Security
+
+- JWT Authentication
+- Password Hashing
+- Protected Routes
+- Role-Based Authorization
+- Audit Logging
+
+---
+
+# AI Provider Abstraction
+
+Supported Providers
+
+- OpenAI
+- Google Gemini
+- Anthropic Claude
+
+Switch providers without modifying business logic.
+
+---
+
+# OCR Providers
+
+Supported
+
+- Tesseract
+- Google Document AI
+- Azure Document Intelligence
+
+---
+
+# AI Observability
+
+Tracks
+
+- Prompt
+- Response
+- Latency
+- Token Usage
+- AI Cost
+- Model Version
+- Policy Version
+- Errors
+
+---
+
+# Testing
+
+Backend
+
+```bash
+pytest
+```
+
+Results
+
+```
+20 Tests Passed
+```
+
+Frontend
+
+```bash
+npm run build
+```
+
+Build Status
+
+```
+Successful
+```
+
+---
+
+# Installation
+
+Clone Repository
 
 ```bash
 git clone https://github.com/Pratham-Arun/FinanceOS.git
-
-cd FinanceOS
 ```
 
----
-
-# Backend Setup
+Backend
 
 ```bash
 cd backend
@@ -215,155 +463,69 @@ uv sync
 uv run uvicorn server:app --reload
 ```
 
-Backend will run at
-
-```
-http://127.0.0.1:8000
-```
-
-Swagger Documentation
-
-```
-http://127.0.0.1:8000/docs
-```
-
----
-
-# Frontend Setup
+Frontend
 
 ```bash
 cd frontend
 
 npm install
 
-npm start
-```
-
-Frontend will run at
-
-```
-http://localhost:3000
+npm run dev
 ```
 
 ---
 
 # Environment Variables
 
-Create a `.env` file inside the backend directory.
-
 ```env
-MONGO_URI=mongodb://127.0.0.1:27017/expense_reimbursement
+MONGO_URI=
 
-MONGO_DB_NAME=expense_reimbursement
+MONGO_DB_NAME=
 
-JWT_SECRET=your-secret-key
+JWT_SECRET=
 
-OPENAI_API_KEY=your-api-key
-```
+OPENAI_API_KEY=
 
-Never commit your `.env` file.
+GOOGLE_API_KEY=
 
----
-
-# API Overview
-
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | /api/auth/login | Login |
-| POST | /api/auth/register | Register |
-| GET | /api/expenses | Get Expenses |
-| POST | /api/expenses | Create Expense |
-| PUT | /api/expenses/{id} | Update Expense |
-| DELETE | /api/expenses/{id} | Delete Expense |
-| POST | /api/approvals/{id} | Approve Expense |
-| GET | /api/notifications | Notifications |
-| GET | /api/analytics | Analytics |
-
----
-
-# Current Features
-
-- JWT Authentication
-- MongoDB Integration
-- Repository Pattern
-- Service Layer
-- Expense CRUD
-- Approval Workflow
-- Notifications
-- Analytics Dashboard
-- Structured Logging
-- Pagination
-- MongoDB Indexes
-- Audit Logging
-- Comprehensive Test Suite
-
----
-
-# Roadmap
-
-## Phase 1
-
-- Authentication
-- Expense Workflow
-- Analytics
-
-Completed
-
-## Phase 2
-
-- OCR Receipt Processing
-- Rule Engine
-- AI Expense Review
-
-In Progress
-
-## Phase 3
-
-- RAG Policy Engine
-- Explainable AI
-- Smart Recommendations
-- AI Chat Assistant
-
-Planned
-
----
-
-# Testing
-
-Run all backend tests
-
-```bash
-uv run pytest -v
+ANTHROPIC_API_KEY=
 ```
 
 ---
 
-# Future Enhancements
+# Future Roadmap
 
-- Invoice Processing
-- Vendor Management
-- Budget Planning
-- Procurement
-- Compliance Dashboard
+Version 2
+
+- Cloud Deployment
+- Docker Support
+- CI/CD
 - Mobile Application
+- ERP Integration
+- Email Integration
+- Real-Time Notifications
+- Advanced Fraud Detection
 
 ---
 
-# Contributing
+# Highlights
 
-Contributions are welcome.
+Enterprise Features
 
-Please open an issue before submitting major changes.
+- AI Expense Analysis
+- OCR Automation
+- Explainable AI
+- Rule Engine
+- RAG Integration
+- AI Copilot
+- Fraud Detection
+- Policy Validation
+- Enterprise Analytics
+- AI Observability
 
 ---
 
-# License
-
-This project is licensed under the MIT License.
-
----
-
-# Author
+# Team
 
 **Pratham Arun**
 
@@ -371,6 +533,24 @@ B.Tech Computer Science Engineering
 
 SRM Institute of Science and Technology
 
-GitHub
+---
 
-https://github.com/Pratham-Arun
+# License
+
+This project is developed for academic, research, and portfolio purposes.
+
+---
+
+# Acknowledgements
+
+Special thanks to the open-source community and modern AI technologies that inspired the architecture and implementation of FinanceOS.
+
+---
+
+<div align="center">
+
+**FinanceOS**
+
+Building the Future of Intelligent Enterprise Expense Management
+
+</div>
