@@ -1,9 +1,9 @@
 # Project Development Status
 
 **Project:** Expense Reimbursement Automation using AI  
-**Version:** MVP v1.0  
-**Last Updated:** July 21, 2026  
-**Current Phase:** Backend + Frontend Integration Complete (In-Memory Mode)
+**Version:** Phase 2 — AI Review Workspace  
+**Last Updated:** August 2, 2026  
+**Current Phase:** AI Review Experience, Receipt Intelligence & Enterprise Approval Workspace
 
 ---
 
@@ -14,13 +14,15 @@
 | ✅ Sprint 1 | Authentication | Complete | Login, Register, JWT, RBAC, session persistence |
 | ✅ Sprint 2 | Expense Submission | Complete | Upload, file validation, OCR mock, draft save |
 | ✅ Sprint 3 | Backend APIs | Complete | All CRUD endpoints implemented |
-| ✅ Sprint 4 | Database | Partial | In-memory collections (MongoDB not yet connected) |
-| 🔄 Sprint 5 | AI Integration | Partial | Mock OCR only (real Tesseract/LLM pending) |
+| ✅ Sprint 4 | Database | Complete | MongoDB connected, full persistence, static file serving |
+| ✅ Sprint 5 | AI Integration | Complete | Gemini 2.5 Flash + Tesseract OCR + Rule Engine + Fraud Detection |
 | ✅ Sprint 6 | Approval Workflow | Complete | Full Employee → Manager → Finance → Paid flow |
-| ✅ Sprint 7 | Dashboard | Complete | Role-specific views for all four roles |
-| ✅ Sprint 8 | Analytics | Complete | Charts, KPIs, role-scoped filtering |
-| 🔜 Sprint 9 | Testing | Pending | Formal test suite not yet implemented |
-| 🔜 Sprint 10 | Deployment | Pending | Local dev only (Docker + prod deploy pending) |
+| ✅ Sprint 7 | Dashboard | Complete | Role-specific views, risk distribution, AI rec column |
+| ✅ Sprint 8 | Analytics | Complete | Charts + AI enterprise metrics panel |
+| ✅ Phase 2 | AI Review Workspace | Complete | 3-column ExpenseDetails, Receipt Viewer, Fraud Gauge, OCR overlay, AI Copilot panel |
+| ✅ Simplification | Architecture | Complete | Single-provider stack: Gemini 2.5 Flash + Tesseract. Removed OpenAI, Claude, Google DocAI, Azure, all factories |
+| ✅ Sprint 9 | Testing | Complete | 33 backend tests pass across all modules |
+| 🔜 Sprint 10 | Deployment | Pending | Docker + prod deploy pending |
 
 ---
 

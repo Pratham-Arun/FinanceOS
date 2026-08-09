@@ -1,52 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Clock, AlertCircle, Loader2, Sparkles, FileText, Scale3d, User, CreditCard } from 'lucide-react';
+import api from '../lib/api';
 
 const STEP_ICONS = {
-  'Submitted': '📋',
-  'OCR Processing': '🔍',
-  'Rule Engine': '⚙️',
-  'AI Analysis': '🧠',
-  'Manager Approval': '👤',
-  'Payment Processed': '💳'
+  'Submitted': <FileText size={14} className="text-indigo-400" />,
+  'OCR Processing': <Sparkles size={14} className="text-emerald-400" />,
+  'Rule Engine': <Scale3d size={14} className="text-amber-400" />,
+  'AI Analysis': <Sparkles size={14} className="text-violet-400" />,
+  'Manager Review': <User size={14} className="text-blue-400" />,
+  'Manager Approval': <User size={14} className="text-blue-400" />,
+  'Finance Payment': <CreditCard size={14} className="text-emerald-400" />,
+  'Payment Processed': <CreditCard size={14} className="text-emerald-400" />
 };
 
-export default function ApprovalTimeline({ expenseId }) {
-  const [steps, setSteps] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function ApprovalTimeline({ expenseId, initialTimeline }) {
+  const [steps, setSteps] = useState(initialTimeline || []);
+  const [loading, setLoading] = useState(!initialTimeline && !!expenseId);
 
   useEffect(() => {
+    if (initialTimeline && initialTimeline.length > 0) {
+      setSteps(initialTimeline);
+      setLoading(false);
+      return;
+    }
     if (!expenseId) return;
     fetchTimeline();
-  }, [expenseId]);
+  }, [expenseId, initialTimeline]);
 
   const fetchTimeline = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:8000/api/expenses/${expenseId}/timeline`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setSteps(data.timeline || []);
-      }
+      const res = await api.get(`/api/expenses/${expenseId}/timeline`);
+      setSteps(res.data.timeline || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch timeline:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const statusConfig = {
-    completed: { icon: <CheckCircle2 className="w-5 h-5 text-emerald-400" />, ring: 'border-emerald-500 bg-emerald-500/10', line: 'bg-emerald-500' },
-    rejected:  { icon: <AlertCircle className="w-5 h-5 text-rose-400" />, ring: 'border-rose-500 bg-rose-500/10', line: 'bg-slate-700' },
-    pending:   { icon: <Clock className="w-5 h-5 text-slate-500" />, ring: 'border-slate-700 bg-slate-800/40', line: 'bg-slate-700' }
+    completed: {
+      icon: <CheckCircle2 size={16} style={{ color: 'var(--emerald-400)' }} />,
+      dotClass: 'timeline-dot-done',
+      badgeClass: 'badge-emerald',
+      label: 'Done'
+    },
+    rejected: {
+      icon: <AlertCircle size={16} style={{ color: 'var(--crimson-400)' }} />,
+      dotClass: 'timeline-dot-error',
+      badgeClass: 'badge-crimson',
+      label: 'Rejected'
+    },
+    pending: {
+      icon: <Clock size={16} style={{ color: 'var(--text-tertiary)' }} />,
+      dotClass: 'timeline-dot-pending',
+      badgeClass: 'badge-slate',
+      label: 'Pending'
+    }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 text-slate-400 text-xs gap-2">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span>Loading approval timeline...</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', gap: 8 }}>
+        <Loader2 size={14} className="animate-spin" />
+        <span>Loading lifecycle timeline…</span>
       </div>
     );
   }
@@ -54,44 +71,41 @@ export default function ApprovalTimeline({ expenseId }) {
   if (!steps.length) return null;
 
   return (
-    <div className="space-y-0">
+    <div className="timeline" style={{ paddingTop: 4 }}>
       {steps.map((step, idx) => {
-        const cfg = statusConfig[step.status] || statusConfig.pending;
+        const status = step.status || (step.timestamp ? 'completed' : 'pending');
+        const cfg = statusConfig[status] || statusConfig.pending;
         const isLast = idx === steps.length - 1;
+
         return (
-          <div key={step.step} className="flex gap-4">
-            {/* Timeline Column */}
-            <div className="flex flex-col items-center">
-              <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 ${cfg.ring}`}>
+          <div key={step.step || idx} className="timeline-item" style={{ marginBottom: isLast ? 0 : 16 }}>
+            <div className="timeline-connector">
+              <div className={`timeline-dot ${cfg.dotClass}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {cfg.icon}
               </div>
-              {!isLast && (
-                <div className={`w-0.5 flex-1 my-1 min-h-[28px] rounded-full ${cfg.line}`} />
-              )}
+              {!isLast && <div className="timeline-line" />}
             </div>
 
-            {/* Content */}
-            <div className={`pb-5 ${isLast ? '' : ''}`}>
-              <div className="flex items-center gap-2 mb-0.5">
-                <span className="text-base">{STEP_ICONS[step.step]}</span>
-                <h4 className={`text-sm font-semibold ${step.status === 'completed' ? 'text-white' : step.status === 'rejected' ? 'text-rose-400' : 'text-slate-500'}`}>
+            <div className="timeline-content">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: status === 'completed' ? 'var(--text-primary)' : status === 'rejected' ? 'var(--crimson-400)' : 'var(--text-tertiary)' }}>
                   {step.step}
-                </h4>
-                {step.status === 'completed' && (
-                  <span className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded-md">Done</span>
-                )}
-                {step.status === 'rejected' && (
-                  <span className="text-[10px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded-md">Rejected</span>
-                )}
-                {step.status === 'pending' && (
-                  <span className="text-[10px] font-semibold bg-slate-800 text-slate-500 border border-slate-700 px-1.5 py-0.5 rounded-md">Pending</span>
-                )}
+                </span>
+                <span className={`badge ${cfg.badgeClass}`} style={{ fontSize: 10, padding: '2px 6px' }}>
+                  {cfg.label}
+                </span>
               </div>
-              <p className="text-xs text-slate-400 leading-snug">{step.details}</p>
+
+              {step.details && (
+                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 2, lineHeight: 1.4 }}>
+                  {step.details}
+                </div>
+              )}
+
               {step.timestamp && (
-                <p className="text-[11px] text-slate-600 mt-0.5">
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
                   {new Date(step.timestamp).toLocaleString()}
-                </p>
+                </div>
               )}
             </div>
           </div>

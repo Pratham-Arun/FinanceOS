@@ -2,8 +2,9 @@ import datetime
 import time
 from typing import List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IAuditRepository
 
-class AuditRepository:
+class AuditRepository(IAuditRepository):
     @property
     def col(self):
         return mongo.collection("audit_logs")
@@ -23,4 +24,4 @@ class AuditRepository:
         docs = await self.col.find({}).sort("timestamp", -1).limit(limit).to_list(None)
         return format_docs(docs)
 
-audit_repository = AuditRepository()
+audit_repository: IAuditRepository = AuditRepository()

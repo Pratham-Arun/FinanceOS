@@ -1,7 +1,10 @@
 from typing import Optional, List, Dict, Any
+import datetime
+import time
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IPolicyRepository
 
-class PolicyRepository:
+class PolicyRepository(IPolicyRepository):
     @property
     def col(self):
         return mongo.collection("policies")
@@ -21,8 +24,6 @@ class PolicyRepository:
         return format_docs(docs)
 
     async def upsert_policy(self, category: str, max_limit: float, receipt_required: bool, duplicate_window_days: int) -> Dict[str, Any]:
-        import datetime
-        import time
         policy_data = {
             "category": category,
             "max_limit": max_limit,
@@ -48,4 +49,4 @@ class PolicyRepository:
         docs = await self.col.find({}, {"version_history": 1, "category": 1}).to_list(None)
         return format_docs(docs)
 
-policy_repository = PolicyRepository()
+policy_repository: IPolicyRepository = PolicyRepository()

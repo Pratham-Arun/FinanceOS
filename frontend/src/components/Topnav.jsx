@@ -5,13 +5,17 @@ import { useAuth } from '../lib/auth';
 import api from '../lib/api';
 
 const PAGE_TITLES = {
-  '/':             { title: 'Dashboard', sub: 'Overview' },
-  '/expenses':     { title: 'Expenses', sub: 'All claims' },
-  '/submit':       { title: 'Submit Claim', sub: 'New expense' },
-  '/analytics':    { title: 'Analytics', sub: 'Spending insights' },
-  '/notifications':{ title: 'Notifications', sub: 'Activity feed' },
-  '/profile':      { title: 'Profile', sub: 'Your account' },
-  '/settings':     { title: 'Policies', sub: 'Admin configuration' },
+  '/':               { title: 'Dashboard',         sub: 'Overview' },
+  '/expenses':       { title: 'Expenses',           sub: 'All claims' },
+  '/submit':         { title: 'Submit Claim',       sub: 'New expense' },
+  '/analytics':      { title: 'Analytics',          sub: 'Spending insights' },
+  '/notifications':  { title: 'Notifications',      sub: 'Activity feed' },
+  '/profile':        { title: 'Profile',            sub: 'Your account' },
+  '/settings':       { title: 'Expense Policies',   sub: 'Admin configuration' },
+  '/knowledge':      { title: 'Policy Library',     sub: 'RAG knowledge base' },
+  '/policy-rules':   { title: 'Rule Engine',        sub: 'Policy limits' },
+  '/ai-config':      { title: 'AI Config',          sub: 'Engine settings' },
+  '/ai-logs':        { title: 'Audit Logs',         sub: 'AI observability' },
 };
 
 function timeAgo(dateStr) {

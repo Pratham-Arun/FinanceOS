@@ -3,6 +3,25 @@
 *.env
 .env.*
 !.env.example
+backend/.env
+frontend/.env
+**/.env
+**/.env.*
+!.env.example
+
+# Local credential / security artifacts
+memory/test_credentials.md
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.sqlite
+*.db
+
+# Tooling metadata
+.kiro/
 
 # Python
 __pycache__/

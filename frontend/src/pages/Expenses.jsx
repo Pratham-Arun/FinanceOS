@@ -1,129 +1,112 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import api from '../lib/api';
-import { StatusPill, RiskBadge } from '../components/ui/RiskBadge';
-import { PageHeader } from '../components/ui/PageHeader';
-import { TabBar } from '../components/ui/SearchFilterBar';
+import StatusBadge from '../components/StatusBadge';
 import { SearchFilterBar } from '../components/ui/SearchFilterBar';
 import { EmptyState, LoadingSkeleton } from '../components/ui/EmptyState';
-import {
-  Calendar, ChevronRight, Plus, SlidersHorizontal,
-  Brain, FileText, DollarSign, Clock, CheckCircle2
-} from 'lucide-react';
+import { ShieldAlert, ShieldCheck, Brain, ScanLine, BadgeCheck, AlertTriangle } from 'lucide-react';
 
-const formatCurrency = (val) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const fmt = (v) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v || 0);
+
+const RiskBadge = ({ score }) => {
+  if (!score) return <span className="risk-badge risk-low">Low</span>;
+  const cls = score === 'High' ? 'risk-high' : score === 'Medium' ? 'risk-medium' : 'risk-low';
+  return (
+    <span className={`risk-badge ${cls}`}>
+      {score === 'High' && <ShieldAlert size={10} />}
+      {score === 'Low' && <ShieldCheck size={10} />}
+      {score}
+    </span>
+  );
+};
+
+const AIRecBadge = ({ rec }) => {
+  if (!rec) return <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)' }}>—</span>;
+  const r = rec.toLowerCase();
+  if (r.includes('auto')) return <span className="badge badge-emerald" style={{ fontSize: 'var(--text-2xs)' }}>AUTO APPROVE</span>;
+  if (r.includes('manual') || r.includes('invest')) return <span className="badge badge-crimson" style={{ fontSize: 'var(--text-2xs)' }}>INVESTIGATE</span>;
+  return <span className="badge badge-amber" style={{ fontSize: 'var(--text-2xs)' }}>REVIEW</span>;
+};
+
+const PolicyBadge = ({ status }) => {
+  if (!status) return <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)' }}>—</span>;
+  return status === 'PASS'
+    ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'var(--emerald-400)', fontSize: 'var(--text-xs)' }}><BadgeCheck size={11} /> Pass</span>
+    : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'var(--crimson-400)', fontSize: 'var(--text-xs)' }}><AlertTriangle size={11} /> Violation</span>;
+};
+
 
 const Expenses = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [activeTab, setActiveTab] = useState('ALL');
-  const [dense, setDense] = useState(false);
+  const [riskFilter, setRiskFilter] = useState(searchParams.get('tab') === 'high-risk' ? 'High' : '');
+  const [policyFilter, setPolicyFilter] = useState('');
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('tab') === 'high-risk') {
-      setActiveTab('HIGH_RISK');
-    }
-  }, [location.search]);
-
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      try {
-        const response = await api.get('/api/expenses');
-        setExpenses(response.data || []);
-      } catch (error) {
-        console.error('Failed to load expenses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchExpenses();
+    api.get('/api/expenses')
+      .then(r => setExpenses(r.data))
+      .catch(e => console.error('Expenses fetch error:', e))
+      .finally(() => setLoading(false));
   }, []);
 
-  const isPrivileged = user?.role === 'Manager' || user?.role === 'Finance' || user?.role === 'Admin';
+  const isReviewer = user.role === 'Manager' || user.role === 'Finance' || user.role === 'Admin';
 
-  const pendingCount = expenses.filter(e => e.status === 'Submitted' || e.status === 'Under Review').length;
-  const highRiskCount = expenses.filter(e => e.status === 'Under Review' || e.amount > 1000 || e.risk_score === 'High' || e.risk_score === 'Critical').length;
-
-  const tabs = [
-    { key: 'ALL', label: 'All Claims', count: expenses.length },
-    ...(isPrivileged ? [
-      { key: 'PENDING', label: 'Awaiting Review', count: pendingCount },
-      { key: 'HIGH_RISK', label: 'High-Risk AI Queue', count: highRiskCount, icon: <Brain size={13} style={{ color: 'var(--crimson-400)' }} /> },
-    ] : []),
-  ];
-
-  const filteredExpenses = expenses.filter(e => {
-    const matchesSearch = (e.title || '').toLowerCase().includes(search.toLowerCase()) ||
-                          (e.employee_name || '').toLowerCase().includes(search.toLowerCase()) ||
-                          (e.description || '').toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !statusFilter || e.status === statusFilter;
-    const matchesCategory = !categoryFilter || e.category === categoryFilter;
-
-    let matchesTab = true;
-    if (activeTab === 'PENDING') {
-      matchesTab = e.status === 'Submitted' || e.status === 'Under Review';
-    } else if (activeTab === 'HIGH_RISK') {
-      matchesTab = e.status === 'Under Review' || e.amount > 1000 || e.risk_score === 'High' || e.risk_score === 'Critical';
-    }
-
-    return matchesSearch && matchesStatus && matchesCategory && matchesTab;
+  const filtered = expenses.filter(e => {
+    const q = search.toLowerCase();
+    const matchSearch = !q ||
+      e.title?.toLowerCase().includes(q) ||
+      e.employee_name?.toLowerCase().includes(q) ||
+      e.category?.toLowerCase().includes(q);
+    const matchStatus = !statusFilter || e.status === statusFilter;
+    const matchCat = !categoryFilter || e.category === categoryFilter;
+    const matchRisk = !riskFilter || e.risk_score === riskFilter;
+    const matchPolicy = !policyFilter || (e.rule_engine?.policy_status || (e.risk_flags?.length > 0 ? 'VIOLATION' : 'PASS')) === policyFilter;
+    return matchSearch && matchStatus && matchCat && matchRisk && matchPolicy;
   });
 
-  const totalFilteredAmount = filteredExpenses.reduce((sum, item) => sum + (item.amount || 0), 0);
-
-  if (loading) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }}>
-        <div className="skeleton" style={{ height: 40, width: 280 }} />
-        <LoadingSkeleton rows={6} />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }}>
+      <div className="skeleton" style={{ height: 40, width: 220 }} />
+      <LoadingSkeleton rows={6} />
+    </div>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }} className="animate-fade-up">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 4 }}>
+            {user.role === 'Finance' ? 'Payments Queue' : user.role === 'Manager' ? 'Approvals' : 'My Claims'}
+          </h2>
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+            {filtered.length} of {expenses.length} expense{expenses.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+        {user.role === 'Employee' && (
+          <button onClick={() => navigate('/submit')} className="btn btn-primary btn-md">
+            Submit Claim
+          </button>
+        )}
+      </div>
 
-      {/* Page Header */}
-      <PageHeader
-        title="Reimbursement Claims"
-        subtitle="Search, filter, and review all expense reimbursement records across the company."
-        icon={<FileText size={20} />}
-        actions={
-          user?.role === 'Employee' ? (
-            <button onClick={() => navigate('/submit')} className="btn btn-primary btn-md">
-              <Plus size={15} strokeWidth={2.5} /> New Claim
-            </button>
-          ) : null
-        }
-      />
-
-      {/* Tabs bar */}
-      {isPrivileged && (
-        <TabBar tabs={tabs} active={activeTab} onChange={setActiveTab} />
-      )}
-
-      {/* Main Table Card */}
       <div className="card" style={{ overflow: 'hidden' }}>
-
-        {/* Toolbar */}
         <SearchFilterBar
           searchValue={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search title, vendor, or submitter…"
+          searchPlaceholder="Search by title, submitter, or category…"
           filters={[
             {
-              key: 'status',
-              label: 'All Statuses',
-              value: statusFilter,
+              key: 'status', label: 'All Statuses', value: statusFilter,
               options: [
                 { value: 'Draft', label: 'Draft' },
                 { value: 'Submitted', label: 'Submitted' },
@@ -131,108 +114,106 @@ const Expenses = () => {
                 { value: 'Approved', label: 'Approved' },
                 { value: 'Paid', label: 'Paid' },
                 { value: 'Rejected', label: 'Rejected' },
-              ],
+              ]
             },
             {
-              key: 'category',
-              label: 'All Categories',
-              value: categoryFilter,
+              key: 'category', label: 'All Categories', value: categoryFilter,
               options: [
                 { value: 'Meals', label: 'Meals' },
                 { value: 'Travel', label: 'Travel' },
                 { value: 'Accommodation', label: 'Accommodation' },
                 { value: 'Supplies', label: 'Supplies' },
                 { value: 'Other', label: 'Other' },
-              ],
+              ]
+            },
+            {
+              key: 'risk', label: 'All Risk Levels', value: riskFilter,
+              options: [
+                { value: 'High', label: 'High Risk' },
+                { value: 'Medium', label: 'Medium Risk' },
+                { value: 'Low', label: 'Low Risk' },
+              ]
+            },
+            {
+              key: 'policy', label: 'Policy Status', value: policyFilter,
+              options: [
+                { value: 'PASS', label: 'Policy Pass' },
+                { value: 'VIOLATION', label: 'Policy Violation' },
+              ]
             },
           ]}
           onFilterChange={(key, val) => {
             if (key === 'status') setStatusFilter(val);
-            if (key === 'category') setCategoryFilter(val);
+            else if (key === 'category') setCategoryFilter(val);
+            else if (key === 'risk') setRiskFilter(val);
+            else if (key === 'policy') setPolicyFilter(val);
           }}
-          resultCount={filteredExpenses.length}
-          actions={
-            <button
-              onClick={() => setDense(!dense)}
-              className="btn btn-ghost btn-sm"
-              title="Toggle Compact Mode"
-              style={{ color: dense ? 'var(--indigo-400)' : 'var(--text-tertiary)' }}
-            >
-              <SlidersHorizontal size={14} />
-            </button>
-          }
+          resultCount={filtered.length}
         />
 
-        {/* Table */}
-        {filteredExpenses.length === 0 ? (
+
+        {filtered.length === 0 ? (
           <EmptyState
-            title="No matching reimbursement claims"
-            subtitle="Try clearing search filters or selecting a different tab."
+            title="No claims found"
+            subtitle={
+              search || statusFilter || categoryFilter || riskFilter || policyFilter
+                ? 'Try adjusting your filters.'
+                : 'No reimbursement claims have been submitted yet.'
+            }
+            action={user.role === 'Employee' ? (
+              <button onClick={() => navigate('/submit')} className="btn btn-primary btn-sm">
+                Submit First Claim
+              </button>
+            ) : null}
           />
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table className={`data-table ${dense ? 'dense' : ''}`}>
+            <table className="data-table">
               <thead>
                 <tr>
                   <th>Date</th>
-                  {isPrivileged && <th>Submitter</th>}
-                  <th>Claim Details</th>
+                  {isReviewer && <th>Submitter</th>}
+                  <th>Title</th>
                   <th>Category</th>
-                  <th className="col-right">Amount</th>
-                  {isPrivileged && <th>AI Risk</th>}
+                  <th>Amount</th>
                   <th>Status</th>
+                  <th>Risk</th>
+                  <th>AI Rec.</th>
+                  <th>Policy</th>
                   <th className="col-right">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredExpenses.map(e => {
-                  const riskLevel = e.risk_score?.toLowerCase() || (e.amount > 1000 ? 'high' : 'low');
+                {filtered.map(e => {
+                  const aiRec = e.ai_analysis?.recommendation;
+                  const policyStatus = e.rule_engine?.policy_status ||
+                    (e.risk_flags?.length > 0 ? 'VIOLATION' : 'PASS');
                   return (
                     <tr key={e.id} onClick={() => navigate(`/expense/${e.id}`)}>
-                      <td className="col-mono" style={{ color: 'var(--text-tertiary)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <Calendar size={12} style={{ color: 'var(--text-tertiary)' }} />
-                          {e.expense_date}
-                        </div>
+                      <td style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>
+                        {e.expense_date}
                       </td>
-                      {isPrivileged && (
-                        <td style={{ fontWeight: 500 }}>{e.employee_name}</td>
+                      {isReviewer && (
+                        <td style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>{e.employee_name}</td>
                       )}
-                      <td>
-                        <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{e.title}</div>
-                        {e.description && (
-                          <div style={{
-                            fontSize: 'var(--text-xs)',
-                            color: 'var(--text-tertiary)',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            maxWidth: 240,
-                          }}>
-                            {e.description}
-                          </div>
-                        )}
+                      <td style={{ fontWeight: 500, maxWidth: 200 }}>
+                        <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {e.title}
+                        </span>
                       </td>
                       <td>
-                        <span className="badge badge-slate">{e.category}</span>
+                        <span className="badge badge-slate" style={{ fontSize: 'var(--text-2xs)' }}>{e.category}</span>
                       </td>
-                      <td className="col-mono col-right" style={{ fontWeight: 600 }}>
-                        {formatCurrency(e.amount)}
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {fmt(e.amount)}
                       </td>
-                      {isPrivileged && (
-                        <td>
-                          <RiskBadge level={riskLevel} score={e.fraud_score} />
-                        </td>
-                      )}
-                      <td>
-                        <StatusPill status={e.status?.toLowerCase().replace(' ', '_') || 'draft'} label={e.status} />
-                      </td>
+                      <td><StatusBadge status={e.status} /></td>
+                      <td><RiskBadge score={e.risk_score} /></td>
+                      <td><AIRecBadge rec={aiRec} /></td>
+                      <td><PolicyBadge status={policyStatus} /></td>
                       <td className="col-right">
-                        <button
-                          onClick={ev => { ev.stopPropagation(); navigate(`/expense/${e.id}`); }}
-                          className="btn btn-secondary btn-xs row-actions"
-                        >
-                          View <ChevronRight size={12} />
+                        <button className="btn btn-ghost btn-xs row-actions" style={{ color: 'var(--indigo-400)' }}>
+                          Review →
                         </button>
                       </td>
                     </tr>
@@ -242,26 +223,6 @@ const Expenses = () => {
             </table>
           </div>
         )}
-
-        {/* Table Footer Summary */}
-        <div style={{
-          padding: 'var(--sp-3) var(--sp-5)',
-          borderTop: '1px solid var(--border-default)',
-          background: 'var(--surface-inset)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: 'var(--text-xs)',
-          color: 'var(--text-tertiary)',
-        }}>
-          <div>Showing {filteredExpenses.length} of {expenses.length} claims</div>
-          <div style={{ display: 'flex', gap: 'var(--sp-4)' }}>
-            <span>Filtered Total: <strong className="text-mono" style={{ color: 'var(--text-primary)' }}>
-              {formatCurrency(totalFilteredAmount)}
-            </strong></span>
-          </div>
-        </div>
-
       </div>
     </div>
   );

@@ -1,143 +1,102 @@
 import React from 'react';
 import { useAuth } from '../lib/auth';
-import { User, Mail, Shield, CheckCircle, Hash, Clock, Star } from 'lucide-react';
+import { Mail, Shield, CheckCircle, Hash, Star, Clock, User } from 'lucide-react';
 
-const ROLE_CONFIG = {
-  Admin:    { badgeClass: 'badge-indigo',  color: 'var(--indigo-400)' },
-  Manager:  { badgeClass: 'badge-amber',   color: 'var(--amber-400)' },
-  Finance:  { badgeClass: 'badge-emerald', color: 'var(--emerald-400)' },
-  Employee: { badgeClass: 'badge-slate',   color: 'var(--text-secondary)' },
+const ROLE_STYLES = {
+  Admin:    { badge: 'badge-violet',  color: 'var(--violet-400)',  bg: 'rgba(139,92,246,0.1)', label: 'Administrator' },
+  Manager:  { badge: 'badge-amber',   color: 'var(--amber-400)',   bg: 'rgba(245,158,11,0.1)', label: 'Manager' },
+  Finance:  { badge: 'badge-emerald', color: 'var(--emerald-400)', bg: 'rgba(16,185,129,0.1)', label: 'Finance Officer' },
+  Employee: { badge: 'badge-indigo',  color: 'var(--indigo-400)',  bg: 'var(--indigo-100)',    label: 'Employee' },
 };
 
-const ROLE_CAPABILITIES = {
-  Admin: [
-    'View & manage all users and roles',
-    'Configure global reimbursement policies',
-    'Access full system audit logs',
-    'View organization-wide analytics',
-  ],
-  Manager: [
-    'Review and approve direct report expenses',
-    'Request clarifications on submitted claims',
-    'Reject non-compliant expense requests',
-    'View team spending analytics',
-  ],
-  Finance: [
-    'Process and disburse approved payments',
-    'Issue payment reference numbers',
-    'Audit AI risk flags and OCR results',
-    'View organization-wide analytics',
-  ],
-  Employee: [
-    'Submit new reimbursement claims',
-    'Upload receipt documents for AI parsing',
-    'Track real-time status of all claims',
-    'Receive notifications for status changes',
-  ],
+const CAPABILITIES = {
+  Admin:    ['View and manage all users and roles', 'Configure global reimbursement policies', 'Access system-wide audit logs', 'View organisation analytics'],
+  Manager:  ['Review and approve direct report expenses', 'Request clarifications on submitted claims', 'Reject non-compliant requests with reason', 'View team spending analytics'],
+  Finance:  ['Process and disburse approved payments', 'Issue payment transaction references', 'Audit AI risk flags and OCR results', 'View organisation-wide analytics'],
+  Employee: ['Submit new reimbursement claims', 'Upload receipts for AI auto-extraction', 'Track claim status in real time', 'Receive notifications on status changes'],
 };
+
+const Row = ({ icon, label, value, valueStyle = {} }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 'var(--text-sm)', padding: '10px 0', borderBottom: '1px solid var(--border-subtle)' }}>
+    <span style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}>{icon}</span>
+    <span style={{ width: 120, color: 'var(--text-tertiary)', flexShrink: 0 }}>{label}</span>
+    <span style={{ fontWeight: 500, ...valueStyle }}>{value}</span>
+  </div>
+);
 
 const Profile = () => {
   const { user } = useAuth();
-  const roleCfg = ROLE_CONFIG[user?.role] || ROLE_CONFIG.Employee;
-  const capabilities = ROLE_CAPABILITIES[user?.role] || [];
-  const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : '??';
+  const rs = ROLE_STYLES[user?.role] || ROLE_STYLES.Employee;
+  const caps = CAPABILITIES[user?.role] || [];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', maxWidth: '900px' }}>
-      {/* Header */}
-      <div className="page-header">
-        <div>
-          <h2 className="page-title">User Account Profile</h2>
-          <p className="page-subtitle">
-            Review active session credentials, account authority levels, and role permissions.
-          </p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-6)' }}>
+      <div>
+        <h2 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, letterSpacing: '-0.03em', marginBottom: 4 }}>
+          Account Profile
+        </h2>
+        <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+          Your credentials, role, and access permissions.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-        {/* Left: Identity Card */}
-        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Avatar & Name */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--sp-6)', alignItems: 'start', maxWidth: 900 }}>
+        {/* Identity Card */}
+        <div className="card" style={{ padding: 'var(--sp-6)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-5)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-4)' }}>
             <div style={{
-              width: '56px', height: '56px', borderRadius: '50%',
-              background: 'var(--indigo-50)', border: '1.5px solid var(--indigo-500)',
-              color: 'var(--indigo-400)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 'var(--text-lg)', fontWeight: 600, flexShrink: 0
+              width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+              background: rs.bg, border: `2px solid ${rs.color}44`,
+              color: rs.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              {initials}
+              <User size={28} />
             </div>
             <div>
-              <h3 className="section-title" style={{ fontSize: 'var(--text-lg)', marginBottom: '4px' }}>{user?.name}</h3>
-              <span className={`badge ${roleCfg.badgeClass}`}>
-                {user?.role}
-              </span>
+              <div style={{ fontSize: 'var(--text-xl)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: 6 }}>
+                {user?.name}
+              </div>
+              <span className={`badge ${rs.badge}`}>{rs.label}</span>
             </div>
           </div>
 
-          {/* User Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderTop: '1px solid var(--border-subtle)', paddingTop: '16px', fontSize: 'var(--text-sm)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Mail size={15} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-tertiary)', width: '100px' }}>Email:</span>
-              <span className="text-mono" style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{user?.email}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Shield size={15} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-tertiary)', width: '100px' }}>System Role:</span>
-              <span style={{ color: roleCfg.color, fontWeight: 500 }}>{user?.role}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Hash size={15} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-tertiary)', width: '100px' }}>Account ID:</span>
-              <span className="text-mono" style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)' }}>{user?.id}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <CheckCircle size={15} style={{ color: 'var(--emerald-400)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-tertiary)', width: '100px' }}>Status:</span>
-              <span style={{ color: 'var(--emerald-400)', fontWeight: 500 }}>Active & Verified</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Clock size={15} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-              <span style={{ color: 'var(--text-tertiary)', width: '100px' }}>Session:</span>
-              <span style={{ color: 'var(--text-secondary)' }}>JWT Token (24h)</span>
-            </div>
+          <div>
+            <Row icon={<Mail size={15} />} label="Email" value={user?.email} />
+            <Row icon={<Shield size={15} />} label="Role" value={user?.role} valueStyle={{ color: rs.color }} />
+            <Row icon={<Hash size={15} />} label="Account ID"
+              value={<code style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>{user?.id}</code>}
+            />
+            <Row icon={<CheckCircle size={15} />} label="Status"
+              value="Active & Verified" valueStyle={{ color: 'var(--emerald-400)' }}
+            />
+            <Row icon={<Clock size={15} />} label="Session"
+              value="JWT Bearer Token (24h)"
+            />
           </div>
         </div>
 
-        {/* Right: Role Capabilities */}
-        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Star size={16} style={{ color: roleCfg.color }} />
-            <h3 className="section-title">{user?.role} Role Permissions</h3>
+        {/* Permissions Card */}
+        <div className="card" style={{ padding: 'var(--sp-6)', display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <Star size={16} style={{ color: rs.color }} />
+            <span className="section-title">{user?.role} Permissions</span>
           </div>
-          <p className="section-sub" style={{ marginTop: '-8px' }}>
-            Capabilities granted to your user profile in this workspace.
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>
+            Capabilities granted to your account.
           </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {capabilities.map((cap, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: 'var(--text-sm)' }}>
-                <CheckCircle size={14} style={{ color: 'var(--emerald-400)', marginTop: '3px', flexShrink: 0 }} />
-                <span style={{ color: 'var(--text-secondary)', lineHeight: 1.4 }}>{cap}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {caps.map((cap, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 'var(--text-sm)' }}>
+                <CheckCircle size={14} style={{ color: rs.color, marginTop: 2, flexShrink: 0 }} />
+                <span style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}>{cap}</span>
               </div>
             ))}
           </div>
-
           <div style={{
-            marginTop: '8px',
-            padding: '12px 14px',
-            borderRadius: 'var(--radius-md)',
-            background: 'var(--surface-inset)',
-            border: '1px solid var(--border-subtle)',
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-tertiary)',
+            marginTop: 4, padding: 'var(--sp-3) var(--sp-4)',
+            background: rs.bg, border: `1px solid ${rs.color}33`,
+            borderRadius: 'var(--radius-lg)', fontSize: 'var(--text-sm)', color: rs.color, fontWeight: 500,
           }}>
-            Logged in as <strong style={{ color: 'var(--text-primary)' }}>{user?.name}</strong> with {user?.role}-level permissions.
+            Signed in as <strong>{user?.name}</strong> with {user?.role}-level access.
           </div>
         </div>
       </div>

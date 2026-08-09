@@ -2,8 +2,9 @@ import datetime
 import time
 from typing import List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import INotificationRepository
 
-class NotificationRepository:
+class NotificationRepository(INotificationRepository):
     @property
     def col(self):
         return mongo.collection("notifications")
@@ -27,4 +28,4 @@ class NotificationRepository:
     async def mark_read_by_user_id(self, user_id: str, session=None) -> None:
         await self.col.update_many({"user_id": user_id}, {"$set": {"read": True}}, session=session)
 
-notification_repository = NotificationRepository()
+notification_repository: INotificationRepository = NotificationRepository()

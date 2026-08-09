@@ -1456,3 +1456,326 @@ select option {
   .kpi-strip { flex-direction: column; }
   .kpi-item { border-right: none; border-bottom: 1px solid var(--border-default); }
 }
+
+
+/* ============================================================
+   PHASE 2 — AI REVIEW WORKSPACE
+   ============================================================ */
+
+/* ── Three-column review layout ── */
+.review-workspace {
+  display: grid;
+  grid-template-columns: 280px 1fr 300px;
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+@media (max-width: 1280px) {
+  .review-workspace {
+    grid-template-columns: 260px 1fr 280px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .review-workspace {
+    grid-template-columns: 1fr 1fr;
+  }
+  .review-workspace > :nth-child(1) { grid-column: 1; }
+  .review-workspace > :nth-child(2) { grid-column: 2; }
+  .review-workspace > :nth-child(3) { grid-column: 1 / -1; }
+}
+
+@media (max-width: 768px) {
+  .review-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Sticky copilot panel ── */
+.sticky-panel {
+  position: sticky;
+  top: var(--sp-6);
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+/* ── Section card header ── */
+.section-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-inset);
+}
+
+.section-card-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* ── Info row ── */
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: var(--text-sm);
+}
+
+.info-row:last-child { border-bottom: none; }
+.info-row-label { color: var(--text-tertiary); flex-shrink: 0; min-width: 110px; }
+.info-row-value { color: var(--text-primary); font-weight: 500; text-align: right; }
+
+/* ── Fraud gauge wrapper ── */
+.fraud-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--sp-3) 0;
+}
+
+.fraud-gauge-score {
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fraud-gauge-label {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+/* ── Confidence bar row ── */
+.conf-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.conf-row-label {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.conf-track {
+  flex: 1;
+  height: 4px;
+  background: var(--border-default);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.conf-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.conf-value {
+  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── Receipt viewer toolbar ── */
+.receipt-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: var(--surface-inset);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.receipt-viewport {
+  height: 320px;
+  overflow: auto;
+  background: var(--surface-inset);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Authenticity badge ── */
+.auth-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--sp-3);
+}
+
+.auth-badge-genuine {
+  background: var(--emerald-50);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.auth-badge-warning {
+  background: var(--amber-50);
+  border: 1px solid rgba(245,158,11,0.2);
+}
+
+.auth-badge-suspect {
+  background: var(--crimson-50);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+/* ── AI recommendation hero ── */
+.ai-rec-hero {
+  padding: var(--sp-5);
+  background: linear-gradient(135deg, rgba(139,92,246,0.07) 0%, rgba(99,102,241,0.05) 100%);
+  border: 1px solid rgba(139,92,246,0.22);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-ai);
+}
+
+.ai-rec-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ai-rec-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--violet-400);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+/* ── Collapsible metadata ── */
+.meta-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-5);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background var(--transition-fast);
+}
+
+.meta-toggle:hover { background: var(--surface-hover); }
+
+/* ── OCR field row ── */
+.ocr-field-row {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ocr-field-row:last-child { border-bottom: none; }
+
+.ocr-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.ocr-field-name  { font-size: var(--text-xs); color: var(--text-tertiary); }
+.ocr-field-conf  { font-size: var(--text-xs); font-family: var(--font-mono); }
+
+.ocr-field-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ocr-field-value {
+  flex: 1;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.ocr-mini-bar {
+  width: 60px;
+  height: 3px;
+  background: var(--border-default);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+/* ── Policy / duplicate status rows ── */
+.status-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: var(--text-sm);
+}
+
+/* ── Reasoning list ── */
+.reasoning-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  list-style: none;
+  margin: 0;
+}
+
+.reasoning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.reasoning-bullet {
+  color: var(--indigo-400);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Page header with back button ── */
+.page-header-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.page-header-detail-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── Empty state for receipt ── */
+.receipt-empty {
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--surface-inset);
+  border-radius: var(--radius-lg);
+  border: 1.5px dashed var(--border-strong);
+  color: var(--text-tertiary);
+}

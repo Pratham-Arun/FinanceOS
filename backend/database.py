@@ -36,6 +36,11 @@ class Mongo:
         await self.db.notifications.create_index([("user_id", 1), ("created_at", -1)])
         await self.db.approvals.create_index([("expense_id", 1)])
         await self.db.audit_logs.create_index([("timestamp", -1)])
+        # Phase 2 collections
+        await self.db.ocr_results.create_index([("expense_id", 1)])
+        await self.db.ocr_results.create_index([("created_at", -1)])
+        await self.db.ocr_results.create_index([("request_id", 1)])
+        await self.db.ai_configuration.create_index([("id", 1)], unique=True)
         logger.info("MongoDB indexes verified successfully.")
 
     async def disconnect(self) -> None:

@@ -1,7 +1,8 @@
 from typing import List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IApprovalRepository
 
-class ApprovalRepository:
+class ApprovalRepository(IApprovalRepository):
     @property
     def col(self):
         return mongo.collection("approvals")
@@ -15,4 +16,4 @@ class ApprovalRepository:
         docs = await self.col.find({"expense_id": expense_id}).sort("actioned_at", 1).to_list(None)
         return format_docs(docs)
 
-approval_repository = ApprovalRepository()
+approval_repository: IApprovalRepository = ApprovalRepository()

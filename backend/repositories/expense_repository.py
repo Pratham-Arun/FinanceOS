@@ -1,7 +1,8 @@
 from typing import Optional, List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IExpenseRepository
 
-class ExpenseRepository:
+class ExpenseRepository(IExpenseRepository):
     @property
     def col(self):
         return mongo.collection("expenses")
@@ -54,4 +55,4 @@ class ExpenseRepository:
         docs = await cursor.to_list(None)
         return format_docs(docs)
 
-expense_repository = ExpenseRepository()
+expense_repository: IExpenseRepository = ExpenseRepository()

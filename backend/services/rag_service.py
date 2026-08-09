@@ -39,6 +39,16 @@ class RAGService:
         }
         return await knowledge_repository.insert_doc(doc_data)
 
+    async def ingest_user_document(self, user: Dict[str, Any], title: str, category: str, content: str) -> Dict[str, Any]:
+        from fastapi import HTTPException
+        from repositories.audit_repository import audit_repository
+        if user["role"] not in ["Admin", "Finance"]:
+            raise HTTPException(status_code=403, detail="Admin or Finance role required")
+        res = await self.ingest_document(title, category, content)
+        await audit_repository.create(user["id"], "KNOWLEDGE_INGESTED", f"Indexed RAG doc: {title}")
+        return res
+
+
     async def search_policies(self, query: str) -> List[Dict[str, Any]]:
         await self.seed_knowledge_if_empty()
         return await knowledge_repository.search_by_text(query)

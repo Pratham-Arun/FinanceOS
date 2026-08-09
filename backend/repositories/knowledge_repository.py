@@ -1,7 +1,8 @@
 from typing import Optional, List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IKnowledgeRepository
 
-class KnowledgeRepository:
+class KnowledgeRepository(IKnowledgeRepository):
     @property
     def col(self):
         return mongo.collection("knowledge_base")
@@ -34,4 +35,4 @@ class KnowledgeRepository:
             res = await self.col.delete_one({"id": doc_id})
         return res.deleted_count > 0
 
-knowledge_repository = KnowledgeRepository()
+knowledge_repository: IKnowledgeRepository = KnowledgeRepository()

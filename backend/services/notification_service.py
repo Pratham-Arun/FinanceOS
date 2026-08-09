@@ -36,4 +36,12 @@ class SmartNotificationService:
         notif = await notification_repository.create(user_id, title, message)
         return notif
 
+    async def get_user_notifications(self, user_id: str) -> List[Dict[str, Any]]:
+        return await notification_repository.find_by_user_id(user_id)
+
+    async def mark_notifications_read(self, user_id: str) -> Dict[str, str]:
+        await notification_repository.mark_read_by_user_id(user_id)
+        return {"status": "success"}
+
 notification_service = SmartNotificationService()
+

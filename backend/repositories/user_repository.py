@@ -1,7 +1,8 @@
 from typing import Optional, List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IUserRepository
 
-class UserRepository:
+class UserRepository(IUserRepository):
     @property
     def col(self):
         return mongo.collection("users")
@@ -35,4 +36,4 @@ class UserRepository:
         await self.col.insert_one(data)
         return format_doc(data)
 
-user_repository = UserRepository()
+user_repository: IUserRepository = UserRepository()

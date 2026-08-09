@@ -69,18 +69,22 @@ class AnalyticsService:
         months = ["Feb", "Mar", "Apr", "May", "Jun", "Jul"]
         monthly_data = [{"month": m, "amount": 0.0} for m in months]
         expenses = await expense_repository.find_expenses(match_stage)
+        month_map = {"02": 0, "03": 1, "04": 2, "05": 3, "06": 4, "07": 5}
         for e in expenses:
-            exp_id = e.get("id", "")
-            parts = exp_id.split("_")
-            month_index = int(parts[-1]) % 6 if len(parts) > 1 and parts[-1].isdigit() else 5
-            monthly_data[month_index]["amount"] += float(e.get("amount", 0.0))
+            date_str = e.get("expense_date") or e.get("created_at", "")
+            try:
+                month_key = str(date_str)[5:7]  # "YYYY-MM-..." → "MM"
+                idx = month_map.get(month_key, 5)
+                monthly_data[idx]["amount"] += float(e.get("amount", 0.0))
+            except Exception:
+                monthly_data[5]["amount"] += float(e.get("amount", 0.0))
 
         if user["role"] == "Admin":
             logs = await audit_repository.get_recent_logs(20)
         else:
             logs = []
 
-        logger.info(f"Generated analytics summary for user {user['id']} with role {user['role']}")
+        logger.info("Analytics Summary Generated", user_id=user["id"], role=user["role"])
         return {
             "summary": {
                 "total_submitted": total_submitted,

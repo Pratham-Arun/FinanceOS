@@ -1,8 +1,9 @@
 import datetime
 from typing import Optional, List, Dict, Any
 from database import mongo, format_doc, format_docs
+from repositories.interfaces.base import IAILogsRepository
 
-class AILogsRepository:
+class AILogsRepository(IAILogsRepository):
     @property
     def col(self):
         return mongo.collection("ai_logs")
@@ -19,19 +20,21 @@ class AILogsRepository:
         manager_override: Optional[Dict[str, Any]] = None,
         finance_override: Optional[Dict[str, Any]] = None,
         details: Optional[str] = None,
-        # AI Observability fields (Improvement #8)
         prompt: Optional[str] = None,
         retrieved_context: Optional[List[str]] = None,
         llm_response_raw: Optional[str] = None,
         latency_ms: Optional[float] = None,
         token_usage: Optional[int] = None,
         estimated_cost_usd: Optional[float] = None,
-        error: Optional[str] = None
+        error: Optional[str] = None,
+        request_id: Optional[str] = None,       # Phase 2: UUID for end-to-end traceability
+        ocr_provider: Optional[str] = None,     # Phase 2: provider name for OCR events
     ) -> Dict[str, Any]:
         log_doc = {
             "expense_id": expense_id,
             "user_id": user_id,
             "event_type": event_type,
+            "request_id": request_id,
             "ocr_data": ocr_data or {},
             "rule_output": rule_output or {},
             "ai_recommendation": ai_recommendation or {},
@@ -39,7 +42,6 @@ class AILogsRepository:
             "manager_override": manager_override,
             "finance_override": finance_override,
             "details": details,
-            # Observability
             "observability": {
                 "prompt": prompt,
                 "retrieved_context": retrieved_context or [],
@@ -47,7 +49,8 @@ class AILogsRepository:
                 "latency_ms": latency_ms,
                 "token_usage": token_usage,
                 "estimated_cost_usd": estimated_cost_usd,
-                "error": error
+                "ocr_provider": ocr_provider,
+                "error": error,
             },
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
         }
@@ -55,10 +58,26 @@ class AILogsRepository:
         log_doc["_id"] = str(res.inserted_id)
         return log_doc
 
-    async def get_logs(self, limit: int = 50, event_type: Optional[str] = None) -> List[Dict[str, Any]]:
+    async def get_logs(
+        self,
+        limit: int = 50,
+        event_type: Optional[str] = None,
+        expense_id: Optional[str] = None,
+        request_id: Optional[str] = None,
+        status: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         query = {}
         if event_type:
             query["event_type"] = event_type
+        if expense_id:
+            query["expense_id"] = expense_id
+        if request_id:
+            query["request_id"] = request_id
+        if status:
+            if status.lower() == "error":
+                query["observability.error"] = {"$ne": None}
+            elif status.lower() == "success":
+                query["observability.error"] = None
         docs = await self.col.find(query).sort("timestamp", -1).to_list(limit)
         return format_docs(docs)
 
@@ -66,4 +85,8 @@ class AILogsRepository:
         docs = await self.col.find({"expense_id": expense_id}).sort("timestamp", -1).to_list(None)
         return format_docs(docs)
 
-ai_logs_repository = AILogsRepository()
+    async def get_logs_by_request_id(self, request_id: str) -> List[Dict[str, Any]]:
+        docs = await self.col.find({"request_id": request_id}).sort("timestamp", 1).to_list(None)
+        return format_docs(docs)
+
+ai_logs_repository: IAILogsRepository = AILogsRepository()

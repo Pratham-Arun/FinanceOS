@@ -79,10 +79,19 @@ async def test_ai_agent_and_anomaly_detection():
     rule_res = await rule_engine.validate_expense(expense)
     analysis = await ai_service.analyze_expense(expense, rule_result=rule_res, employee_history=emp_history)
     
-    assert analysis["risk"] in ["Low", "Medium", "High", "Very High Risk"]
+    # fraud_score must be elevated due to policy violation + anomaly + alcohol + weekend
+    assert analysis["fraud_score"] >= 50
+    assert analysis["risk"] in ["Review Required", "High Risk", "Very High Risk"]
     assert len(analysis["reason"]) > 0
-    assert analysis["anomaly"] is True
-    assert analysis["severity"] == "High"
+    # Anomaly detected: $250 is 4× the $31.67 historical average → appears in reasoning
+    anomaly_mentioned = any(
+        "anomaly" in r.lower() or "4×" in r or "historical" in r.lower()
+        for r in analysis["reason"]
+    )
+    assert anomaly_mentioned, "Expected anomaly detection in reasoning"
+    # Alcohol reference should appear in fraud_indicators
+    alcohol_flagged = any("alcohol" in str(f).lower() for f in analysis.get("fraud_indicators", []))
+    assert alcohol_flagged, "Expected alcohol reference in fraud indicators"
 
 @pytest.mark.anyio
 async def test_rag_and_chat_services():

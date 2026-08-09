@@ -89,4 +89,13 @@ class RuleEngine:
             "risk_score": risk_score
         }
 
+    async def validate_expense_and_log(self, user_id: str, expense_data: Dict[str, Any]) -> Dict[str, Any]:
+        res = await self.validate_expense(expense_data)
+        from repositories.ai_logs_repository import ai_logs_repository
+        await ai_logs_repository.log_event(
+            expense_id=None, user_id=user_id, event_type="RULE_VALIDATION", rule_output=res
+        )
+        return res
+
 rule_engine = RuleEngine()
+
