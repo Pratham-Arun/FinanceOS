@@ -169,8 +169,7 @@ FinanceOS follows a modular service-oriented architecture, decoupling route vali
 ```
 
 ### 🧬 Logical Core Flow  
-*Standalone code file: [system_architecture.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/system_architecture.mmd)*
-``` 
+```mermaid
 flowchart TB
     U[Users]
     FE[React Frontend]
@@ -286,8 +285,7 @@ Failed              │
 ```
 
 ### 🔐 Token Verification Flow  
-*Standalone code file: [auth_flow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/auth_flow.mmd)*
-``` 
+```mermaid
 flowchart TD
     START[User Opens FinanceOS]
     AUTHQ{Authenticated?}
@@ -393,8 +391,7 @@ Submit Expense
 ```
 
 #### 📋 Integration Sequence  
-*Standalone code file: [employee_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/employee_workflow.mmd)*
-``` 
+```mermaid
 sequenceDiagram
     actor Employee
     participant FE as React Frontend
@@ -489,8 +486,7 @@ Review Expense
 ```
 
 #### 📋 Integration Sequence  
-*Standalone code file: [manager_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/manager_workflow.mmd)*
-``` 
+```mermaid
 sequenceDiagram
     actor Manager
     participant FE as React Frontend
@@ -577,8 +573,7 @@ Review Expense
 ```
 
 #### 📋 Integration Sequence  
-*Standalone code file: [finance_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/finance_workflow.mmd)*
-``` 
+```mermaid
 sequenceDiagram
     actor Finance as Finance Officer
     participant FE as React Frontend
@@ -635,8 +630,7 @@ sequenceDiagram
 Administrators control the operational configurations of FinanceOS.
 
 #### 📋 Integration Sequence  
-*Standalone code file: [admin_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/admin_workflow.mmd)*
-``` 
+```mermaid
 sequenceDiagram
     actor Admin
     participant FE as React Frontend
@@ -746,8 +740,7 @@ Incoming Expense / Query
 ```
 
 ### 📋 Policy Validation Nodes  
-*Standalone code file: [rule_engine.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/rule_engine.mmd)*
-``` 
+```mermaid
 flowchart TD
     INPUT[Incoming Expense / Query]
     VALIDATE[Validate Input]
@@ -872,8 +865,7 @@ Route   Status    Rejection      Route
 ```
 
 ### 📋 Intent Classifier Logic  
-*Standalone code file: [ai_copilot_orchestration.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/ai_copilot_orchestration.mmd)*
-``` 
+```mermaid
 flowchart TD
     QUERY[Incoming User Message] --> INTENT{Intent Classifier<br/>String Keyword Matching}
 
@@ -909,8 +901,7 @@ flowchart TD
 ```
 
 ### 📋 Context Extraction & Generation  
-*Standalone code file: [ai_query_routing.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/ai_query_routing.mmd)*
-``` 
+```mermaid
 flowchart TD
     QUERY[Incoming User Query] --> INTENT{Intent Detected?}
     
@@ -985,8 +976,7 @@ Grounded AI Response
 ```
 
 ### 📋 Pipeline Diagram  
-*Standalone code file: [rag_pipeline.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/rag_pipeline.mmd)*
-``` 
+```mermaid
 flowchart LR
     subgraph Ingestion["Document Ingestion & Indexing"]
         ADMIN[Admin Portal] --> VALIDATE[Validate File & Text]
@@ -1095,8 +1085,7 @@ Enterprise Analytics
 ```
 
 ### 📋 Full Sequence Flow  
-*Standalone code file: [expense_lifecycle.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/expense_lifecycle.mmd)*
-``` 
+```mermaid
 flowchart LR
     A[Employee<br/>Submit Expense] --> B[Receipt Upload]
     B --> C[OCR Extraction]
@@ -1180,7 +1169,7 @@ FinanceOS/
 │   └── tailwind.config.js         # CSS configuration files
 │
 ├── docs/                          # Project documentation
-│   ├──  _diagram/           # Standalone   diagrams (.mmd)
+│   ├── mermaid_diagram/           # Standalone Mermaid diagrams (.mmd)
 │   └── system_architecture.md     # System architecture specification
 │
 ├── .gitignore
