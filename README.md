@@ -100,7 +100,7 @@ What makes FinanceOS an enterprise-grade compliance framework:
 ## 🛠 Technology Stack
 
 - **Frontend**: React, JavaScript, HTML, CSS, Axios, Recharts (for analytics dashboard)
-- **Backend**: Python, FastAPI, Pydantic, Motor (Async MongoDB Driver)
+- **Backend**: Python, FastAPI, Pydantic, REST APIs, Motor (Async MongoDB Driver)
 - **Authentication**: JWT (JSON Web Tokens), Role-Based Access Control, Bcrypt
 - **AI & Agent Framework**: LangChain, LangGraph (designed routing patterns), Gemini 2.0 Flash
 - **Document Intelligence**: Tesseract OCR, PIL (Python Imaging Library)
@@ -114,6 +114,7 @@ What makes FinanceOS an enterprise-grade compliance framework:
 
 FinanceOS follows a modular service-oriented architecture, decoupling route validation, service logic, data persistence, and external AI providers.
 
+### 📊 Conceptual Architecture Diagram
 ```text
                          ┌─────────────────────┐
                          │       Users         │
@@ -167,12 +168,77 @@ FinanceOS follows a modular service-oriented architecture, decoupling route vali
          └──────────────► Analytics / Audit Logging
 ```
 
+### 🧬 Logical Core Flow (Mermaid)
+*Standalone code file: [system_architecture.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/system_architecture.mmd)*
+```mermaid
+flowchart TB
+    U[Users]
+    FE[React Frontend]
+    API[FastAPI Backend]
+
+    AUTH[JWT Authentication]
+    RBAC[Role Based Access Control]
+
+    SERVICES[Service Layer]
+
+    EXP[Expense Service]
+    AI[AI Service]
+    OCR[OCR Service]
+    RULE[Rule Engine]
+    APPROVAL[Approval Service]
+    NOTIFY[Notification Service]
+
+    REPO[Repository Layer]
+
+    MONGO[(MongoDB)]
+
+    OCRP[OCR Provider]
+    LLM[LLM Provider<br/>Gemini 2.5 Flash]
+    RAG[RAG Pipeline]
+    
+    AUDIT[Audit Logging]
+    OBS[AI Observability]
+    ANALYTICS[Enterprise Analytics]
+
+    U --> FE
+    FE --> API
+
+    API --> AUTH
+    AUTH --> RBAC
+    RBAC --> SERVICES
+
+    SERVICES --> EXP
+    SERVICES --> AI
+    SERVICES --> OCR
+    SERVICES --> RULE
+    SERVICES --> APPROVAL
+    SERVICES --> NOTIFY
+
+    EXP --> REPO
+    AI --> REPO
+    OCR --> REPO
+    APPROVAL --> REPO
+
+    REPO --> MONGO
+
+    OCR --> OCRP
+    AI --> LLM
+    AI --> RAG
+    RAG --> MONGO
+    RAG --> LLM
+
+    SERVICES --> AUDIT
+    AI --> OBS
+    MONGO --> ANALYTICS
+```
+
 ---
 
 ## 🔐 Authentication & Authorization
 
 FinanceOS uses JWT-based authentication with role-based authorization. Every request to a protected endpoint must carry a valid access token in the `Authorization: Bearer <token>` header.
 
+### 🔑 Authentication Pipeline
 ```text
 User
   │
@@ -219,11 +285,59 @@ Failed              │
           Employee Manager Finance   Admin
 ```
 
+### 🔐 Token Verification Flow (Mermaid)
+*Standalone code file: [auth_flow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/auth_flow.mmd)*
+```mermaid
+flowchart TD
+    START[User Opens FinanceOS]
+    AUTHQ{Authenticated?}
+    LOGIN[Login / Register]
+    CRED[Validate Credentials]
+    DB[(MongoDB Users)]
+    VALID{Valid User?}
+    FAIL[Authentication Failed]
+    JWT[Generate JWT]
+    TOKEN[Store Access Token]
+    REQUEST[Protected API Request]
+    MW[JWT Authentication Middleware]
+    VERIFY[Verify JWT]
+    USER[Get Current User]
+    ROLE{Role Check}
+    EMP[Employee Portal]
+    MAN[Manager Portal]
+    FIN[Finance Officer Portal]
+    ADMIN[Admin Portal]
+
+    START --> AUTHQ
+
+    AUTHQ -- No --> LOGIN
+    LOGIN --> CRED
+    CRED --> DB
+    DB --> VALID
+
+    VALID -- No --> FAIL
+    VALID -- Yes --> JWT
+    JWT --> TOKEN
+    TOKEN --> REQUEST
+
+    AUTHQ -- Yes --> REQUEST
+
+    REQUEST --> MW
+    MW --> VERIFY
+    VERIFY --> USER
+    USER --> ROLE
+
+    ROLE -->|Employee| EMP
+    ROLE -->|Manager| MAN
+    ROLE -->|Finance Officer| FIN
+    ROLE -->|Admin| ADMIN
+```
+
 ### Supported Roles:
-- `employee` — Submit claims, upload receipts, track own reimbursements.
-- `manager` — Review team submissions, evaluate risk levels, approve/reject claims.
-- `finance_officer` — Disburse payment, check audit logs, verify tax/payment configurations.
-- `admin` — Configure policies, modify AI configuration prompts, index policy files.
+*   `employee` — Submit claims, upload receipts, track own reimbursements.
+*   `manager` — Review team submissions, evaluate risk levels, approve/reject claims.
+*   `finance_officer` — Disburse payment, check audit logs, verify tax/payment configurations.
+*   `admin` — Configure policies, modify AI configuration prompts, index policy files.
 
 ---
 
@@ -233,6 +347,7 @@ Failed              │
 
 Employees submit claims and view real-time OCR and AI checks.
 
+#### 📋 Conceptual Submission Flow
 ```text
 Employee
    │
@@ -277,10 +392,64 @@ Submit Expense
    Manager Review
 ```
 
+#### 📋 Integration Sequence (Mermaid)
+*Standalone code file: [employee_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/employee_workflow.mmd)*
+```mermaid
+sequenceDiagram
+    actor Employee
+    participant FE as React Frontend
+    participant API as FastAPI
+    participant AUTH as JWT Auth
+    participant EXP as Expense Service
+    participant OCR as OCR Service
+    participant RULE as Rule Engine
+    participant DUP as Duplicate Detector
+    participant AI as AI Service
+    participant DB as MongoDB
+
+    Employee->>FE: Login
+    FE->>API: POST /api/login
+    API->>AUTH: Validate Credentials
+    AUTH->>DB: Fetch User
+    DB-->>AUTH: User Data
+    AUTH-->>API: JWT Token
+    API-->>FE: Access Token
+
+    Employee->>FE: Submit Expense
+    Employee->>FE: Upload Receipt
+
+    FE->>API: POST /api/expenses
+    API->>EXP: Create Expense
+    EXP->>DB: Store Expense
+    DB-->>EXP: Expense Created
+
+    API->>OCR: Process Receipt
+    OCR-->>API: Extracted Expense Data
+
+    API->>RULE: Validate Expense
+    RULE-->>API: Policy Result
+
+    API->>DUP: Check Duplicate
+    DUP->>DB: Search Similar Expenses
+    DB-->>DUP: Matching Expenses
+    DUP-->>API: Duplicate Result
+
+    API->>AI: Analyze Expense
+    AI-->>API: Risk Score + Recommendation
+
+    API->>DB: Store OCR + AI Results
+    API-->>FE: Expense Status + Analysis
+
+    FE-->>Employee: Display Expense Details
+```
+
+---
+
 ### 👨‍💼 Manager Workflow
 
 Managers inspect expenses and policy violations before submitting an approval decision.
 
+#### 📋 Conceptual Review Flow
 ```text
 Manager
    │
@@ -319,10 +488,57 @@ Review Expense
  Finance Workflow
 ```
 
-### 💼 Finance Officer Workflow
+#### 📋 Integration Sequence (Mermaid)
+*Standalone code file: [manager_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/manager_workflow.mmd)*
+```mermaid
+sequenceDiagram
+    actor Manager
+    participant FE as React Frontend
+    participant API as FastAPI
+    participant AUTH as JWT Auth
+    participant APPROVAL as Approval Service
+    participant DB as MongoDB
+    participant NOTIFY as Notification Service
+
+    Manager->>FE: Open Pending Expenses
+
+    FE->>API: GET /api/approvals/manager/pending
+    API->>AUTH: Verify JWT + Manager Role
+    AUTH-->>API: Authorized
+
+    API->>APPROVAL: Get Pending Expenses
+    APPROVAL->>DB: Query Expenses
+    DB-->>APPROVAL: Pending Expenses
+    APPROVAL-->>API: Expense List
+    API-->>FE: Display Expenses
+
+    Manager->>FE: Open Expense
+
+    FE->>API: GET /api/expenses/{id}
+    API->>DB: Fetch Expense + OCR + AI Results
+    DB-->>API: Expense Data
+    API-->>FE: Expense Details (Risk Report + Decision Board)
+
+    Manager->>FE: Approve / Reject / Clarification
+
+    FE->>API: POST /api/approvals/{id}/action
+    API->>APPROVAL: Process Decision
+
+    APPROVAL->>DB: Update Approval Status
+
+    APPROVAL->>NOTIFY: Send Notification
+    NOTIFY-->>Manager: Decision Confirmation
+
+    API-->>FE: Updated Expense Status
+```
+
+---
+
+### 💼 Financial Officer Workflow
 
 Finance officers verify the manager-approved claims and process payment disbursements.
 
+#### 📋 Conceptual Payment Flow
 ```text
 Finance Officer
       │
@@ -360,14 +576,124 @@ Review Expense
      Audit Logging
 ```
 
+#### 📋 Integration Sequence (Mermaid)
+*Standalone code file: [finance_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/finance_workflow.mmd)*
+```mermaid
+sequenceDiagram
+    actor Finance as Finance Officer
+    participant FE as React Frontend
+    participant API as FastAPI
+    participant AUTH as JWT Auth
+    participant APPROVAL as Approval Service
+    participant PAY as Payment Service
+    participant DB as MongoDB
+    participant AUDIT as Audit Logger
+
+    Finance->>FE: Open Finance Dashboard
+
+    FE->>API: GET /api/approvals/finance/pending
+    API->>AUTH: Verify JWT + Finance Role
+    AUTH-->>API: Authorized
+
+    API->>APPROVAL: Get Manager-Approved Expenses
+    APPROVAL->>DB: Query Approved Expenses
+    DB-->>APPROVAL: Expense List
+    APPROVAL-->>API: Pending Finance Expenses
+    API-->>FE: Display Expenses
+
+    Finance->>FE: Review Expense
+
+    FE->>API: GET /api/expenses/{id}
+    API->>DB: Fetch Expense + Audit History
+    DB-->>API: Expense Data
+    API-->>FE: Display Details
+
+    Finance->>FE: Approve / Reject
+
+    FE->>API: POST /api/approvals/{id}/action (Pay/Reject)
+    API->>APPROVAL: Process Decision
+
+    APPROVAL->>DB: Update Finance Status
+
+    alt Approved
+        APPROVAL->>PAY: Initiate Payment (Reimbursement)
+        PAY->>DB: Update Payment Status (Paid)
+        PAY->>AUDIT: Record Payment Event
+        AUDIT->>DB: Store Audit Log
+        API-->>FE: Payment Disbursed (Paid)
+    else Rejected
+        APPROVAL->>AUDIT: Record Rejection
+        AUDIT->>DB: Store Audit Log
+        API-->>FE: Expense Rejected
+    end
+```
+
+---
+
 ### 🛠️ Admin Workflow
 
-Administrators manage user settings, policies, models, and RAG ingestions:
-- **User Management**: Add/disable profiles, update user roles, and adjust reporting structures.
-- **Policy Management**: Modify maximum limit parameters and receipt thresholds dynamically.
-- **AI Configuration**: Change runtime AI model configurations, parameters, and system prompts.
-- **Knowledge Base (RAG)**: Ingest handbook documents and index policy sections.
-- **Audit Logs & Analytics**: Inspect observability traces, request latencies, and transaction logs.
+Administrators control the operational configurations of FinanceOS.
+
+#### 📋 Integration Sequence (Mermaid)
+*Standalone code file: [admin_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/admin_workflow.mmd)*
+```mermaid
+sequenceDiagram
+    actor Admin
+    participant FE as React Frontend
+    participant API as FastAPI
+    participant AUTH as JWT Auth
+    participant USER as User Service
+    participant POLICY as Policy Service
+    participant CONFIG as AI Configuration
+    participant KB as Knowledge Base
+    participant OBS as AI Observability
+    participant DB as MongoDB
+
+    Admin->>FE: Login
+
+    FE->>API: POST /api/auth/login
+    API->>AUTH: Validate Admin
+    AUTH->>DB: Fetch Admin
+    DB-->>AUTH: Admin Data
+    AUTH-->>API: JWT
+    API-->>FE: Admin Session
+
+    Admin->>FE: Open Admin Dashboard
+
+    FE->>API: GET /api/admin/logs
+    API->>AUTH: Verify JWT + Admin Role
+    AUTH-->>API: Authorized
+
+    par User Management
+        Admin->>FE: Manage Users
+        FE->>API: POST /api/admin/users
+        API->>USER: Create / Update / Disable User
+        USER->>DB: Update Users
+    and Policy Management
+        Admin->>FE: Manage Policies
+        FE->>API: PUT /api/admin/policies
+        API->>POLICY: Create / Update Policy
+        POLICY->>DB: Store Policy
+    and AI Configuration
+        Admin->>FE: Configure AI Provider
+        FE->>API: PUT /api/admin/ai-config
+        API->>CONFIG: Update Provider Configuration
+        CONFIG->>DB: Store AI Configuration
+    and Knowledge Base
+        Admin->>FE: Upload Policy Document
+        FE->>API: POST /api/knowledge/ingest
+        API->>KB: Process Document (RAG)
+        KB->>DB: Store Metadata
+    and AI Monitoring
+        Admin->>FE: View AI Logs
+        FE->>API: GET /api/admin/ai-logs
+        API->>OBS: Query AI Metrics
+        OBS->>DB: Fetch AI Logs
+    end
+
+    API-->>FE: Operation Status / Logs Data
+    FE-->>Admin: Display Updated Dashboard Details
+```
 
 ---
 
@@ -377,6 +703,7 @@ The Rule Engine is a deterministic component responsible for enforcing explicit 
 
 > **Design Principle**: Deterministic policy validation happens before AI interpretation. This prevents the LLM from becoming the sole authority for financial policy decisions.
 
+### 📋 Rule Processing Flow
 ```text
 Incoming Expense / Query
           │
@@ -418,32 +745,62 @@ Incoming Expense / Query
              Workflow      for Review
 ```
 
-### Example Rule Engine Output (Compliant):
-```json
-{
-  "policy_status": "PASS",
-  "violations": [],
-  "risk_score": 0
-}
-```
+### 📋 Policy Validation Nodes (Mermaid)
+*Standalone code file: [rule_engine.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/rule_engine.mmd)*
+```mermaid
+flowchart TD
+    INPUT[Incoming Expense / Query]
+    VALIDATE[Validate Input]
+    EMPTY{Valid Input?}
+    BLOCK[Reject Request]
+    RULE[Rule Engine]
+    CATEGORY{Expense / Query Type}
+    MEAL[Meal Policy Rules]
+    HOTEL[Hotel Policy Rules]
+    TRAVEL[Travel Policy Rules]
+    RECEIPT[Receipt Requirement]
+    DUP[Duplicate Claim Rules]
+    GENERAL[General Expense Rules]
+    RESULT[Generate Rule Result]
+    PASS{Policy Passed?}
+    APPROVE[Continue Workflow]
+    FLAG[Flag for Review]
 
-### Example Rule Engine Output (Violation):
-```json
-{
-  "policy_status": "VIOLATION",
-  "violations": [
-    "Expense exceeds configured category limit."
-  ],
-  "risk_score": 35
-}
+    INPUT --> VALIDATE
+    VALIDATE --> EMPTY
+
+    EMPTY -- No --> BLOCK
+    EMPTY -- Yes --> RULE
+
+    RULE --> CATEGORY
+
+    CATEGORY -->|Meal| MEAL
+    CATEGORY -->|Hotel| HOTEL
+    CATEGORY -->|Travel| TRAVEL
+    CATEGORY -->|Receipt| RECEIPT
+    CATEGORY -->|Duplicate| DUP
+    CATEGORY -->|Other| GENERAL
+
+    MEAL --> RESULT
+    HOTEL --> RESULT
+    TRAVEL --> RESULT
+    RECEIPT --> RESULT
+    DUP --> RESULT
+    GENERAL --> RESULT
+
+    RESULT --> PASS
+
+    PASS -- Yes --> APPROVE
+    PASS -- No --> FLAG
 ```
 
 ---
 
 ## 🤖 AI Risk Analysis & LangGraph Workflow
 
-FinanceOS utilizes generative AI as an additional reasoning layer. The analysis runs after deterministic checks, compiling structural data to return audit context for manual reviewers.
+FinanceOS uses AI as an additional reasoning and helper layer after deterministic processing. The AI model output maps risk severity levels, identifies historical spending violations, and formats reasons for reviewers.
 
+### 📋 AI Risk Processing Pipeline
 ```text
 Validated Expense
        │
@@ -478,31 +835,13 @@ Store AI Results
 Manager Review
 ```
 
-### Example AI-Assisted Output:
-```json
-{
-  "summary": "Accommodation claim exceeds the configured policy limit.",
-  "fraud_score": 35,
-  "risk": "Review Required",
-  "recommendation": "Manager Review Required",
-  "confidence": 0.88,
-  "anomaly": false,
-  "severity": "Low",
-  "fraud_indicators": [
-    "Amount exceeds policy limit"
-  ],
-  "policy_sections": [
-    "Travel Policy Section 4.2"
-  ]
-}
-```
-
 ---
 
 ## 🧠 AI Query Processing & Forced Routing
 
 The AI Copilot uses deterministic intent detection on incoming messages to skip LLM routing overhead for standard database queries, ensuring direct access to real application data.
 
+### 📋 Intent Mapping Route
 ```text
 Incoming User Message
           │
@@ -532,11 +871,76 @@ Route   Status    Rejection      Route
           Grounded JSON Response
 ```
 
-### Intent Classifications:
-- **Policy Q&A**: Routes queries (e.g., *"What is the hotel limit?"*) to RAG search over MongoDB policy collection.
-- **Expense Status**: Matches queries (e.g., *"Show my pending claims"*) to fast database status query.
-- **Rejection Reason**: Matches queries (e.g., *"Why was my dinner expense rejected?"*) to check policy audit logs.
-- **Analytics / FAQs**: Directs user to visualization screens or returns general help lists.
+### 📋 Intent Classifier Logic (Mermaid)
+*Standalone code file: [ai_copilot_orchestration.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/ai_copilot_orchestration.mmd)*
+```mermaid
+flowchart TD
+    QUERY[Incoming User Message] --> INTENT{Intent Classifier<br/>String Keyword Matching}
+
+    %% Branches
+    INTENT -->|Rejection Reasons<br/>'why', 'reject'| REJECT_INTENT[Expense Rejection Route]
+    INTENT -->|Claim Status<br/>'status', 'pending'| STATUS_INTENT[Expense Status Route]
+    INTENT -->|Policy FAQs<br/>'limit', 'meal', 'hotel', 'taxi', etc.| RAG_INTENT[Policy RAG Route]
+    INTENT -->|Analytics Guidance<br/>'analytics', 'spending'| ANALYTICS_INTENT[Analytics Route]
+    INTENT -->|General / Other| HELP_INTENT[General Help Route]
+
+    %% Actions
+    REJECT_INTENT --> FETCH_REJECT[Query User's Rejected/Draft Claims from DB]
+    FETCH_REJECT --> FORMAT_REJECT[Extract AI Risk Flags & Policy Violations]
+    
+    STATUS_INTENT --> FETCH_STATUS[Query User's Pending Claims Count from DB]
+    
+    RAG_INTENT --> RUN_RAG[Trigger RAG Service Query]
+    RUN_RAG --> SEARCH_KNOWLEDGE[Search MongoDB Knowledge Collection]
+    SEARCH_KNOWLEDGE --> GENERATE_Grounded[Select policy template / LLM Grounding Context]
+
+    ANALYTICS_INTENT --> SHOW_GUIDE[Direct user to Analytics dashboard tab]
+
+    HELP_INTENT --> SHOW_CAPABILITIES[List available bot actions & commands]
+
+    %% Consolidation
+    FORMAT_REJECT --> SYNTHESIZE[Format Response Package]
+    FETCH_STATUS --> SYNTHESIZE
+    GENERATE_Grounded --> SYNTHESIZE
+    SHOW_GUIDE --> SYNTHESIZE
+    SHOW_CAPABILITIES --> SYNTHESIZE
+
+    SYNTHESIZE --> REPLY[Return JSON Response with Grounded Reply]
+```
+
+### 📋 Context Extraction & Generation (Mermaid)
+*Standalone code file: [ai_query_routing.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/ai_query_routing.mmd)*
+```mermaid
+flowchart TD
+    QUERY[Incoming User Query] --> INTENT{Intent Detected?}
+    
+    INTENT -->|Policy Q&A| ROUTE_RAG[Route: RAG Service]
+    INTENT -->|Status Check| ROUTE_STATUS[Route: DB Status Query]
+    INTENT -->|Rejection Reason| ROUTE_REJECT[Route: DB Rejection Query]
+    INTENT -->|General / FAQ| ROUTE_BASE[Route: Default Assistant Guide]
+
+    ROUTE_RAG --> DB_SEARCH[Search MongoDB Policy Collection]
+    DB_SEARCH --> MATCHES{Matches Found?}
+    
+    MATCHES -->|Yes| CONTEXT[Load Top Relevant Policy Chunks]
+    MATCHES -->|No| FALLBACK[Load General Policies Overview]
+    
+    CONTEXT --> GENERATOR[Construct Grounded Response with Citations]
+    FALLBACK --> GENERATOR
+    
+    ROUTE_STATUS --> DB_STATUS[Count Pending/Total Claims]
+    DB_STATUS --> FORMAT_STATUS[Format status details response]
+
+    ROUTE_REJECT --> DB_REJECT[Retrieve latest Draft/Rejected Claim flags]
+    DB_REJECT --> FORMAT_REJECT[Format explainable reason response]
+
+    ROUTE_BASE --> FORMAT_BASE[Format list of help commands]
+
+    GENERATOR --> OUTPUT[Return Grounded JSON Response]
+    FORMAT_STATUS --> OUTPUT
+    FORMAT_REJECT --> OUTPUT
+    FORMAT_BASE --> OUTPUT
+```
 
 ---
 
@@ -544,7 +948,7 @@ Route   Status    Rejection      Route
 
 Admins can upload company policy documents into MongoDB. The RAG pipeline ensures that policy-related responses are grounded in these official files.
 
-### 1. Document Ingestion
+### 📋 Ingestion Flow
 ```text
 Admin Portal
      │
@@ -558,7 +962,7 @@ Store Document
 MongoDB Knowledge Base
 ```
 
-### 2. RAG Retrieval
+### 📋 Retrieval Flow
 ```text
 User Policy Question
         │
@@ -578,6 +982,30 @@ LLM / Grounding Generator
         ▼
 Grounded AI Response
     with Policy Sources
+```
+
+### 📋 Pipeline Diagram (Mermaid)
+*Standalone code file: [rag_pipeline.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/rag_pipeline.mmd)*
+```mermaid
+flowchart LR
+    subgraph Ingestion["Document Ingestion & Indexing"]
+        ADMIN[Admin Portal] --> VALIDATE[Validate File & Text]
+        VALIDATE --> STORE[Store Document]
+        STORE --> MONGO_KB[(MongoDB Knowledge Base)]
+    end
+
+    subgraph Retrieval["RAG Retrieval"]
+        QUERY[User Policy Question] --> TEXT_SEARCH[Text Index Search]
+        MONGO_KB -.-> TEXT_SEARCH
+        TEXT_SEARCH --> TOP_CHUNKS[Retrieve Top Matching Policy Chunks]
+    end
+
+    subgraph Generation["Response Generation"]
+        TOP_CHUNKS --> CONTEXT[Load Grounding Context]
+        QUERY --> CONTEXT
+        CONTEXT --> LLM[LLM / Grounding Generator]
+        LLM --> ANSWER[Grounded AI Response with Policy Sources]
+    end
 ```
 
 ---
@@ -630,6 +1058,7 @@ MongoDB
 
 Each stage adds compliance details to the claim, creating an auditable review trail.
 
+### 📋 Conceptual Lifecycle Flow
 ```text
 Employee Submit Expense
           │
@@ -663,6 +1092,22 @@ Audit Logging
           │
           ▼
 Enterprise Analytics
+```
+
+### 📋 Full Sequence Flow (Mermaid)
+*Standalone code file: [expense_lifecycle.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/expense_lifecycle.mmd)*
+```mermaid
+flowchart LR
+    A[Employee<br/>Submit Expense] --> B[Receipt Upload]
+    B --> C[OCR Extraction]
+    C --> D[Rule Engine<br/>Policy Validation]
+    D --> E[Duplicate<br/>Detection]
+    E --> F[AI Analysis<br/>Fraud Risk + Recommendation]
+    F --> G[Manager<br/>Approval]
+    G --> H[Finance Officer<br/>Verification]
+    H --> I[Payment]
+    I --> J[Audit Logging]
+    J --> K[Analytics]
 ```
 
 ---
@@ -867,6 +1312,19 @@ The application workspace will load at: `http://localhost:3000`
 
 ---
 
+## 👤 Demo Seed Accounts
+
+The application automatically seeds the following credentials on startup:
+
+| Role | Email | Password |
+|---|---|---|
+| **Admin** | `admin@demo.com` | `admin123` |
+| **Employee** | `employee@demo.com` | `demo1234` |
+| **Manager** | `manager@demo.com` | `demo1234` |
+| **Finance Officer** | `finance@demo.com` | `demo1234` |
+
+---
+
 ## 📊 Performance & Observability
 
 FinanceOS captures request correlation metrics across every module using custom FastAPI logger utilities.
@@ -949,7 +1407,7 @@ SRM Institute of Science and Technology
 
 ## ⭐ Project Summary
 
-FinanceOS combines deterministic policy enforcement, receipt OCR processing, duplicate detection, explainable AI risk analysis, and RAG-based policy Q&A into a unified enterprise expense workspace.
+FinanceOS combines deterministic policy enforcement, receipt OCR processing, duplicate detection, explainable AI risk analysis, and RAG-based policy Q&A into a unified expense workspace.
 
 ```text
                     FINANCEOS
