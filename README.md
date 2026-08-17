@@ -168,9 +168,9 @@ FinanceOS follows a modular service-oriented architecture, decoupling route vali
          └──────────────► Analytics / Audit Logging
 ```
 
-### 🧬 Logical Core Flow (Mermaid)
-*Standalone code file: [system_architecture.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/system_architecture.mmd)*
-```mermaid
+### 🧬 Logical Core Flow  
+*Standalone code file: [system_architecture.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/system_architecture.mmd)*
+``` 
 flowchart TB
     U[Users]
     FE[React Frontend]
@@ -285,9 +285,9 @@ Failed              │
           Employee Manager Finance   Admin
 ```
 
-### 🔐 Token Verification Flow (Mermaid)
-*Standalone code file: [auth_flow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/auth_flow.mmd)*
-```mermaid
+### 🔐 Token Verification Flow  
+*Standalone code file: [auth_flow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/auth_flow.mmd)*
+``` 
 flowchart TD
     START[User Opens FinanceOS]
     AUTHQ{Authenticated?}
@@ -392,9 +392,9 @@ Submit Expense
    Manager Review
 ```
 
-#### 📋 Integration Sequence (Mermaid)
-*Standalone code file: [employee_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/employee_workflow.mmd)*
-```mermaid
+#### 📋 Integration Sequence  
+*Standalone code file: [employee_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/employee_workflow.mmd)*
+``` 
 sequenceDiagram
     actor Employee
     participant FE as React Frontend
@@ -488,9 +488,9 @@ Review Expense
  Finance Workflow
 ```
 
-#### 📋 Integration Sequence (Mermaid)
-*Standalone code file: [manager_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/manager_workflow.mmd)*
-```mermaid
+#### 📋 Integration Sequence  
+*Standalone code file: [manager_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/manager_workflow.mmd)*
+``` 
 sequenceDiagram
     actor Manager
     participant FE as React Frontend
@@ -576,9 +576,9 @@ Review Expense
      Audit Logging
 ```
 
-#### 📋 Integration Sequence (Mermaid)
-*Standalone code file: [finance_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/finance_workflow.mmd)*
-```mermaid
+#### 📋 Integration Sequence  
+*Standalone code file: [finance_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/finance_workflow.mmd)*
+``` 
 sequenceDiagram
     actor Finance as Finance Officer
     participant FE as React Frontend
@@ -634,9 +634,9 @@ sequenceDiagram
 
 Administrators control the operational configurations of FinanceOS.
 
-#### 📋 Integration Sequence (Mermaid)
-*Standalone code file: [admin_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/admin_workflow.mmd)*
-```mermaid
+#### 📋 Integration Sequence  
+*Standalone code file: [admin_workflow.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/admin_workflow.mmd)*
+``` 
 sequenceDiagram
     actor Admin
     participant FE as React Frontend
@@ -745,9 +745,9 @@ Incoming Expense / Query
              Workflow      for Review
 ```
 
-### 📋 Policy Validation Nodes (Mermaid)
-*Standalone code file: [rule_engine.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/rule_engine.mmd)*
-```mermaid
+### 📋 Policy Validation Nodes  
+*Standalone code file: [rule_engine.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/rule_engine.mmd)*
+``` 
 flowchart TD
     INPUT[Incoming Expense / Query]
     VALIDATE[Validate Input]
@@ -871,9 +871,9 @@ Route   Status    Rejection      Route
           Grounded JSON Response
 ```
 
-### 📋 Intent Classifier Logic (Mermaid)
-*Standalone code file: [ai_copilot_orchestration.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/ai_copilot_orchestration.mmd)*
-```mermaid
+### 📋 Intent Classifier Logic  
+*Standalone code file: [ai_copilot_orchestration.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/ai_copilot_orchestration.mmd)*
+``` 
 flowchart TD
     QUERY[Incoming User Message] --> INTENT{Intent Classifier<br/>String Keyword Matching}
 
@@ -908,9 +908,9 @@ flowchart TD
     SYNTHESIZE --> REPLY[Return JSON Response with Grounded Reply]
 ```
 
-### 📋 Context Extraction & Generation (Mermaid)
-*Standalone code file: [ai_query_routing.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/ai_query_routing.mmd)*
-```mermaid
+### 📋 Context Extraction & Generation  
+*Standalone code file: [ai_query_routing.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/ai_query_routing.mmd)*
+``` 
 flowchart TD
     QUERY[Incoming User Query] --> INTENT{Intent Detected?}
     
@@ -984,9 +984,9 @@ Grounded AI Response
     with Policy Sources
 ```
 
-### 📋 Pipeline Diagram (Mermaid)
-*Standalone code file: [rag_pipeline.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/rag_pipeline.mmd)*
-```mermaid
+### 📋 Pipeline Diagram  
+*Standalone code file: [rag_pipeline.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/rag_pipeline.mmd)*
+``` 
 flowchart LR
     subgraph Ingestion["Document Ingestion & Indexing"]
         ADMIN[Admin Portal] --> VALIDATE[Validate File & Text]
@@ -1094,9 +1094,9 @@ Audit Logging
 Enterprise Analytics
 ```
 
-### 📋 Full Sequence Flow (Mermaid)
-*Standalone code file: [expense_lifecycle.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/mermaid_diagram/expense_lifecycle.mmd)*
-```mermaid
+### 📋 Full Sequence Flow  
+*Standalone code file: [expense_lifecycle.mmd](file:///c:/Users/Pratham%20arun/source/repos/Finance/docs/ _diagram/expense_lifecycle.mmd)*
+``` 
 flowchart LR
     A[Employee<br/>Submit Expense] --> B[Receipt Upload]
     B --> C[OCR Extraction]
@@ -1180,7 +1180,7 @@ FinanceOS/
 │   └── tailwind.config.js         # CSS configuration files
 │
 ├── docs/                          # Project documentation
-│   ├── mermaid_diagram/           # Standalone Mermaid diagrams (.mmd)
+│   ├──  _diagram/           # Standalone   diagrams (.mmd)
 │   └── system_architecture.md     # System architecture specification
 │
 ├── .gitignore
